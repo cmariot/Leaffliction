@@ -18,14 +18,16 @@ def parse_argument():
     return args.filename
 
 
-
-
 def img_contrast(img, alpha=-100, beta=2):
     contrast = img.copy()
     for y in range(contrast.shape[0]):
         for x in range(contrast.shape[1]):
             for c in range(contrast.shape[2]):
-                contrast[y][x][c] = np.clip(alpha + contrast[y][x][c] * beta, 0, 255)
+                contrast[y][x][c] = np.clip(
+                    alpha + contrast[y][x][c] * beta,
+                    0,
+                    255
+                )
     return contrast
 
 
@@ -58,13 +60,19 @@ def img_blur(img, kernel_size=(5, 5)):
 
 
 def newPoint(x, y):
-    return ([random.randint(int(x * 0.1), int(x * 0.9)), random.randint(int(x * 0.1), int(y * 0.9))])
+    return [
+        random.randint(int(x * 0.1), int(x * 0.9)),
+        random.randint(int(x * 0.1), int(y * 0.9))
+    ]
 
 
 def nextP(p, x, y):
     xf = int(x * 0.2)
     yf = int(y * 0.2)
-    return ([(p[0] + random.randint(0, xf)%x), (p[1] + random.randint(0, yf))%y])
+    return [
+        (p[0] + random.randint(0, xf) % x),  # Les parentheses sont diferrement
+        (p[1] + random.randint(0, yf)) % y   # placees ? A verifier
+    ]
 
 
 def img_distortion(img):
@@ -83,8 +91,20 @@ def img_zoom(img):
     img_height, img_width, _ = np.shape(img)
     scale_w = np.random.randint(0, int(img_width * 0.25))
     scale_h = scale_w * img_height / img_width
-    pt1 = np.float32([[0, 0], [0, img_height], [img_width, 0], [img_width, img_height]])
-    pt2 = np.float32([[scale_w, scale_h], [scale_w, img_height - scale_h], [img_width - scale_w, scale_h], [img_width - scale_w, img_height - scale_h]])
+
+    pt1 = np.float32(
+        [[0, 0],
+         [0, img_height],
+         [img_width, 0],
+         [img_width, img_height]]
+    )
+
+    pt2 = np.float32(
+        [[scale_w, scale_h],
+         [scale_w, img_height - scale_h],
+         [img_width - scale_w, scale_h],
+         [img_width - scale_w, img_height - scale_h]]
+    )
     M = cv.getPerspectiveTransform(pt2, pt1)
     zoom = cv.warpPerspective(img, M, (img_width, img_height))
     return zoom
@@ -132,10 +152,10 @@ def main():
         ax.label_outer()
 
     point_pos = filename.rfind(".")
-    filename_without_ext = filename[:point_pos]
+    # filename_without_ext = filename[:point_pos]
     extension = filename[point_pos:]
     for i, image in enumerate(imgs):
-        image_name = "./Image1002" + "_" + labels[i] +  extension
+        image_name = "./Image1002" + "_" + labels[i] + extension
         cv.imwrite(image_name, image)
     plt.show()
 
