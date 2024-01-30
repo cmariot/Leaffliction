@@ -20,7 +20,7 @@ def parse_argument():
 
 
 
-def img_contrast(img, alpha, beta):
+def img_contrast(img, alpha=-100, beta=2):
     contrast = img.copy()
     for y in range(contrast.shape[0]):
         for x in range(contrast.shape[1]):
@@ -29,7 +29,7 @@ def img_contrast(img, alpha, beta):
     return contrast
 
 
-def img_brightness(img, gam):
+def img_brightness(img, gam=0.5):
 
     def gamma(pixel, gam):
         return [
@@ -45,15 +45,15 @@ def img_brightness(img, gam):
     return bright
 
 
-def img_flip(img, direction):
+def img_flip(img, direction="vertical"):
     return pcv.flip(img, direction)
 
 
-def img_rotate(img, angle):
-    return pcv.transform.rotate(img, angle, crop=False)
+def img_rotate(img, angle=np.random.randint(0, 360)):
+    return pcv.transform.rotate(img, angle, crop=True)
 
 
-def img_blur(img, kernel_size):
+def img_blur(img, kernel_size=(5, 5)):
     return pcv.gaussian_blur(img, kernel_size, 1)
 
 
@@ -67,7 +67,7 @@ def nextP(p, x, y):
     return ([(p[0] + random.randint(0, xf)%x), (p[1] + random.randint(0, yf))%y])
 
 
-def img_distortion(img, img_width, img_height):
+def img_distortion(img):
     img_height, img_width, _ = np.shape(img)
     A = [0, 0]
     B = [0, random.randint(0, int(img_height * 0.1))]
@@ -79,7 +79,8 @@ def img_distortion(img, img_width, img_height):
     return dst
 
 
-def img_zoom(img, img_width, img_height):
+def img_zoom(img):
+    img_height, img_width, _ = np.shape(img)
     scale_w = np.random.randint(0, int(img_width * 0.25))
     scale_h = scale_w * img_height / img_width
     pt1 = np.float32([[0, 0], [0, img_height], [img_width, 0], [img_width, img_height]])
@@ -99,54 +100,36 @@ def main():
         raise Exception("The path is not a file")
 
     img, path, name = pcv.readimage(filename)
+    if img is None:
+        raise Exception("The file is not an image")
 
-    contrast = img_contrast(img, -100, 2)
-    bright = img_brightness(img, 0.5)
-    flipped = img_flip(img, "vertical")
-    rotated = img_rotate(img, random.randint(0, 360))
-    blurred = img_blur(img, (5, 5))
-    zoomed = img_zoom(img, img.shape[0], img.shape[1])
-    distortion = img_distortion(img, img.shape[0], img.shape[1])
-
-    # pcv.plot_image(img)
-    # pcv.plot_image(contrast)
-    # pcv.plot_image(bright)
-    # pcv.plot_image(flipped)
-    # pcv.plot_image(rotated)
-    # pcv.plot_image(blurred)
-    # pcv.plot_image(zoomed)
-    # pcv.plot_image(distortion)
+    contrast = img_contrast(img)
+    bright = img_brightness(img)
+    flipped = img_flip(img)
+    rotated = img_rotate(img)
+    blurred = img_blur(img)
+    zoomed = img_zoom(img)
+    distortion = img_distortion(img)
 
     fig, axs = plt.subplots(2, 4)
-    axs[0, 0].imshow(img)
-    axs[0, 1].imshow(contrast)
-    axs[0, 2].imshow(bright)
-    axs[0, 3].imshow(zoomed)
-    axs[1, 0].imshow(flipped)
-    axs[1, 1].imshow(rotated)
-    axs[1, 2].imshow(blurred)
-    axs[1, 3].imshow(distortion)
 
+    imgs = [
+        img, contrast, bright, zoomed,
+        flipped, rotated, blurred, distortion
+    ]
 
-    axs[0, 0].set_title('Original')
-    axs[0, 1].set_title('Contrast')
-    axs[0, 2].set_title('Brightness')
-    axs[0, 3].set_title('Zoomed')
-    axs[1, 0].set_title('Flipped')
-    axs[1, 1].set_title('Rotated')
-    axs[1, 2].set_title('Blurred')
-    axs[1, 3].set_title('Distortion')
+    labels = [
+        'Original', 'Contrast', 'Brightness', 'Zoomed',
+        'Flipped', 'Rotated', 'Blurred', 'Distortion'
+    ]
 
-    # Do not display the axis
-    for ax in axs.flat:
+    for i, ax in enumerate(axs.flat):
+
+        ax.imshow(imgs[i])
+        ax.set_title(labels[i])
+
         ax.set(xticks=[], yticks=[])
-
-    # Hide x labels and tick labels for top plots and y ticks for right plots.
-    for ax in axs.flat:
         ax.label_outer()
-
-    imgs = [img, contrast, bright, zoomed, flipped, rotated, blurred, distortion]
-    labels = ['Original', 'Contrast', 'Brightness', 'Zoomed', 'Flipped', 'Rotated', 'Blurred', 'Distortion']
 
     point_pos = filename.rfind(".")
     filename_without_ext = filename[:point_pos]
@@ -154,11 +137,6 @@ def main():
     for i, image in enumerate(imgs):
         image_name = "./Image1002" + "_" + labels[i] +  extension
         cv.imwrite(image_name, image)
-
-
-
-
-
     plt.show()
 
     # for i in range (10):
