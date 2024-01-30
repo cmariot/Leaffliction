@@ -42,11 +42,15 @@ def count_files(path: str) -> dict:
 
     data = {}
     for root, dir, files in os.walk(path):
+        key = path_to_name(root)
         number_of_files = len(files)
-        if number_of_files != 0:
-            data[path_to_name(root)] = number_of_files
 
         # ⚠️ A gerer, le cas ou un le nom d'un dossier apparait plusieurs fois ?
+        if key in data:
+            raise Exception("The name of the directory already exists")
+
+        if number_of_files != 0:
+            data[key] = number_of_files
 
     # elems = []
     # for key, value in data.items():

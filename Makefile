@@ -3,7 +3,7 @@ PYTHON=python3
 all: analysis augmentation transformation classification
 
 analysis:
-	@(cd ./analysis ; $(PYTHON) Distribution.py)
+	@(cd ./analysis ; $(PYTHON) Distribution.py ../images)
 
 augmentation:
 	@(cd ./augmentation ; $(PYTHON) Augmentation.py)
