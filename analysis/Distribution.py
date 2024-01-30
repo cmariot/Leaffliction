@@ -11,9 +11,9 @@ def parse_argument() -> str:
     """
 
     parser = argparse.ArgumentParser(
-                    prog='Distribution',
-                    description="Distribution of files in a directory",
-                    epilog='----')
+        prog='Distribution',
+        description="Distribution of files in a directory",
+    )
     parser.add_argument('path')
     args = parser.parse_args()
     return args.path
@@ -45,19 +45,11 @@ def count_files(path: str) -> dict:
         key = path_to_name(root)
         number_of_files = len(files)
 
-        # ⚠️ A gerer, le cas ou un le nom d'un dossier apparait plusieurs fois ?
         if key in data:
             raise Exception("The name of the directory already exists")
 
         if number_of_files != 0:
             data[key] = number_of_files
-
-    # elems = []
-    # for key, value in data.items():
-    #     if value == 0:
-    #         elems.append(key)
-    # for key in elems:
-    #     data.pop(key)
 
     return data
 
@@ -97,10 +89,16 @@ def main():
 
     # The path of the directory to analyze
     path = parse_argument()
+    if not os.path.isdir(path):
+        raise Exception("The path is not a directory")
 
     # Dictionary with the name of the directory as key and the number of files
     # in the directory as value
     data = count_files(path)
+
+    print(data)
+    print(f"Number of directories: {len(data)}")
+    print(f"Number of files: {sum(data.values())}")
 
     # Bar chart
     plot_bar(data, path)
@@ -115,5 +113,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as error:
-        print(error)
+        print(f"\033[91mError:\033[0m {error}")
         exit(1)
