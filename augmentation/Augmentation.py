@@ -4,6 +4,7 @@ import random
 import os
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
 
 
 def parse_argument():
@@ -17,6 +18,77 @@ def parse_argument():
     return args.filename
 
 
+
+
+def img_contrast(img, alpha, beta):
+    contrast = img.copy()
+    for y in range(contrast.shape[0]):
+        for x in range(contrast.shape[1]):
+            for c in range(contrast.shape[2]):
+                contrast[y][x][c] = np.clip(alpha + contrast[y][x][c] * beta, 0, 255)
+    return contrast
+
+
+def img_brightness(img, gam):
+
+    def gamma(pixel, gam):
+        return [
+            (pixel[0] / 255) ** gam * 255,
+            (pixel[1] / 255) ** gam * 255,
+            (pixel[2] / 255) ** gam * 255
+        ]
+
+    bright = img.copy()
+    for y in range(bright.shape[0]):
+        for x in range(bright.shape[1]):
+            bright[y][x] = gamma(bright[y][x], gam)
+    return bright
+
+
+def img_flip(img, direction):
+    return pcv.flip(img, direction)
+
+
+def img_rotate(img, angle):
+    return pcv.transform.rotate(img, angle, crop=False)
+
+
+def img_blur(img, kernel_size):
+    return pcv.gaussian_blur(img, kernel_size, 1)
+
+
+def newPoint(x, y):
+    return ([random.randint(int(x * 0.1), int(x * 0.9)), random.randint(int(x * 0.1), int(y * 0.9))])
+
+
+def nextP(p, x, y):
+    xf = int(x * 0.2)
+    yf = int(y * 0.2)
+    return ([(p[0] + random.randint(0, xf)%x), (p[1] + random.randint(0, yf))%y])
+
+
+def img_distortion(img, img_width, img_height):
+    img_height, img_width, _ = np.shape(img)
+    A = [0, 0]
+    B = [0, random.randint(0, int(img_height * 0.1))]
+    C = [img_width, random.randint(0, int(img_height * 0.1))]
+    pt1 = np.float32([A, B, C])
+    pt2 = np.float32([A, B, nextP(C, img_width, img_height)])
+    M = cv.getAffineTransform(pt1, pt2)
+    dst = cv.warpAffine(img, M, (img_width, img_height))
+    return dst
+
+
+def img_zoom(img, img_width, img_height):
+    scale_w = np.random.randint(0, int(img_width * 0.25))
+    scale_h = scale_w * img_height / img_width
+    pt1 = np.float32([[0, 0], [0, img_height], [img_width, 0], [img_width, img_height]])
+    pt2 = np.float32([[scale_w, scale_h], [scale_w, img_height - scale_h], [img_width - scale_w, scale_h], [img_width - scale_w, img_height - scale_h]])
+    M = cv.getPerspectiveTransform(pt2, pt1)
+    zoom = cv.warpPerspective(img, M, (img_width, img_height))
+    return zoom
+
+
 def main():
 
     filename = parse_argument()
@@ -28,48 +100,70 @@ def main():
 
     img, path, name = pcv.readimage(filename)
 
-    # Flip image vertically
-    flipped = pcv.flip(img, "vertical")
-
-    # Rotate image by a random degree between 0 and 360
-    rotated = pcv.transform.rotate(img, random.randint(0, 360), crop=False)
-
-    # Blur image
-    blurred = pcv.gaussian_blur(img, (5, 5), 1)
-
-    # Crop
-    img_height, img_width, _ = np.shape(img)
-    x = random.randint(0, int(img_width * 0.25))
-    # y = random.randint((img_height * 0.25))
-    y = int(x * img_height / img_width)
-
-    # w = img_width / 100 * random.randint(0, 100)
-    # h = random.randint(0, 100)
-    cropped = pcv.crop(img, x, y, int(img_width / 2), int(img_height / 2))
-    cropped = pcv.transform.resize(img=cropped, size=(img_width, img_height))
-
-    # Projective transform
-    # transform_matrix = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    # projection = pcv.transform.apply_transformation_matrix(
-    #     img,
-    #     img,
-    #     transform_matrix,
-    # )
+    contrast = img_contrast(img, -100, 2)
+    bright = img_brightness(img, 0.5)
+    flipped = img_flip(img, "vertical")
+    rotated = img_rotate(img, random.randint(0, 360))
+    blurred = img_blur(img, (5, 5))
+    zoomed = img_zoom(img, img.shape[0], img.shape[1])
+    distortion = img_distortion(img, img.shape[0], img.shape[1])
 
     # pcv.plot_image(img)
+    # pcv.plot_image(contrast)
+    # pcv.plot_image(bright)
     # pcv.plot_image(flipped)
     # pcv.plot_image(rotated)
     # pcv.plot_image(blurred)
-    # pcv.plot_image(cropped)
-    # pcv.plot_image(projection)
+    # pcv.plot_image(zoomed)
+    # pcv.plot_image(distortion)
 
-    # Open and display the image with opencv so we can see the image
-    # cv.imshow("image", img)
-    # cv.waitKey(0)
-    # cv.destroyAllWindows()
+    fig, axs = plt.subplots(2, 4)
+    axs[0, 0].imshow(img)
+    axs[0, 1].imshow(contrast)
+    axs[0, 2].imshow(bright)
+    axs[0, 3].imshow(zoomed)
+    axs[1, 0].imshow(flipped)
+    axs[1, 1].imshow(rotated)
+    axs[1, 2].imshow(blurred)
+    axs[1, 3].imshow(distortion)
 
-    new_image = cv.imread(filename)
-    pcv.plot_image(new_image)
+
+    axs[0, 0].set_title('Original')
+    axs[0, 1].set_title('Contrast')
+    axs[0, 2].set_title('Brightness')
+    axs[0, 3].set_title('Zoomed')
+    axs[1, 0].set_title('Flipped')
+    axs[1, 1].set_title('Rotated')
+    axs[1, 2].set_title('Blurred')
+    axs[1, 3].set_title('Distortion')
+
+    # Do not display the axis
+    for ax in axs.flat:
+        ax.set(xticks=[], yticks=[])
+
+    # Hide x labels and tick labels for top plots and y ticks for right plots.
+    for ax in axs.flat:
+        ax.label_outer()
+
+    imgs = [img, contrast, bright, zoomed, flipped, rotated, blurred, distortion]
+    labels = ['Original', 'Contrast', 'Brightness', 'Zoomed', 'Flipped', 'Rotated', 'Blurred', 'Distortion']
+
+    point_pos = filename.rfind(".")
+    filename_without_ext = filename[:point_pos]
+    extension = filename[point_pos:]
+    for i, image in enumerate(imgs):
+        image_name = "./Image1002" + "_" + labels[i] +  extension
+        cv.imwrite(image_name, image)
+
+
+
+
+
+    plt.show()
+
+    # for i in range (10):
+    #     distortion = img_distortion(img, img.shape[0], img.shape[1])
+    #     pcv.plot_image(distortion)
 
 
 if __name__ == "__main__":
