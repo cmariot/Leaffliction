@@ -3,6 +3,7 @@ from plantcv import plantcv as pcv
 import random
 import os
 import numpy as np
+import cv2 as cv
 
 
 def parse_argument():
@@ -55,12 +56,20 @@ def main():
     #     transform_matrix,
     # )
 
-    pcv.plot_image(img)
-    pcv.plot_image(flipped)
-    pcv.plot_image(rotated)
-    pcv.plot_image(blurred)
-    pcv.plot_image(cropped)
+    # pcv.plot_image(img)
+    # pcv.plot_image(flipped)
+    # pcv.plot_image(rotated)
+    # pcv.plot_image(blurred)
+    # pcv.plot_image(cropped)
     # pcv.plot_image(projection)
+
+    # Open and display the image with opencv so we can see the image
+    # cv.imshow("image", img)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
+
+    new_image = cv.imread(filename)
+    pcv.plot_image(new_image)
 
 
 if __name__ == "__main__":
