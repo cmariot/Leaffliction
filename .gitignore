@@ -3,3 +3,5 @@ augmented_directory/
 en.subject.pdf
 *.JPG
 **/__pycache__/
+**/.DS_Store
+

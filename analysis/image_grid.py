@@ -11,31 +11,20 @@ def main():
 
     _, axs = plt.subplots(2, 4)
 
-    imgs = [
-        cv.imread("../images/Apple_Black_rot/image (1).JPG"),
-        cv.imread("../images/Apple_healthy/image (1).JPG"),
-        cv.imread("../images/Apple_rust/image (1).JPG"),
-        cv.imread("../images/Apple_scab/image (1).JPG"),
-        cv.imread("../images/Grape_Black_rot/image (1).JPG"),
-        cv.imread("../images/Grape_Esca/image (1).JPG"),
-        cv.imread("../images/Grape_healthy/image (1).JPG"),
-        cv.imread("../images/Grape_spot/image (1).JPG")
-    ]
+    images = {
+        "Apple healthy": cv.imread("../images/Apple_healthy/image (1).JPG"),
+        "Apple Black rot": cv.imread("../images/Apple_Black_rot/image (1).JPG"),
+        "Apple rust": cv.imread("../images/Apple_rust/image (1).JPG"),
+        "Apple scab": cv.imread("../images/Apple_scab/image (1).JPG"),
+        "Grape healthy": cv.imread("../images/Grape_healthy/image (1).JPG"),
+        "Grape Black rot": cv.imread("../images/Grape_Black_rot/image (1).JPG"),
+        "Grape Esca": cv.imread("../images/Grape_Esca/image (1).JPG"),
+        "Grape spot": cv.imread("../images/Grape_spot/image (1).JPG")
+    }
 
-    labels = [
-        "Apple Black rot",
-        "Apple healthy",
-        "Apple rust",
-        "Apple scab",
-        "Grape Black rot",
-        "Grape Esca",
-        "Grape healthy",
-        "Grape spot"
-    ]
-
-    for i, ax in enumerate(axs.flat):
-        ax.imshow(imgs[i])
-        ax.set_title(labels[i])
+    for i, (ax, (label, img)) in enumerate(zip(axs.flat, images.items())):
+        ax.imshow(img)
+        ax.set_title(label)
         ax.set(xticks=[], yticks=[])
         ax.label_outer()
 

@@ -1,8 +1,15 @@
 import os
 import argparse
-from Augmentation import img_contrast, img_brightness, img_flip, img_rotate, img_blur
 import cv2 as cv
 from plantcv import plantcv as pcv
+from Augmentation import (
+    img_contrast,
+    img_brightness,
+    img_flip,
+    img_rotate,
+    img_blur
+)
+
 
 def parse_argument() -> str:
 
@@ -49,10 +56,20 @@ def main():
 
             for label, func in augmentedFunctions.items():
                 img, path, name = pcv.readimage(os.path.join(root, file))
-                ret = func(img)
+                augmented_image = func(img)
 
+                last_slash_position = root.rfind("/")
+                if (last_slash_position == -1):
+                    raise Exception("Invalid root name, no / character wtf")
+                subdirectory = root[last_slash_position:] + "/"
                 extension = file[-4:]
-                image_name = new_directory + "/" + file[:-4] + "_" + label + extension
+                image_name = new_directory + \
+                    subdirectory + \
+                    file[:-4] + "_" + label + \
+                    extension
+
+                cv.imwrite(image_name, augmented_image)
+
                 print(image_name)
 
 
@@ -61,3 +78,4 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print(e)
+        exit(1)
