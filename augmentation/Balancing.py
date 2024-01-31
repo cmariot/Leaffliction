@@ -28,7 +28,6 @@ def parse_argument() -> str:
     return args.folder
 
 
-
 def get_max_files(path: str) -> int:
 
     """
@@ -46,7 +45,10 @@ def get_max_files(path: str) -> int:
     return max
 
 
-def get_new_image_name(root: str, file: str, label: str, old_directory: str, new_directory: str) -> str:
+def get_new_image_name(
+    root: str, file: str, label: str,
+    old_directory: str, new_directory: str
+) -> str:
 
     new_root = root.replace(old_directory, new_directory, 1) + "/"
     point_position = file.rfind(".")
@@ -57,8 +59,6 @@ def get_new_image_name(root: str, file: str, label: str, old_directory: str, new
     else:
         new_name = file[:point_position] + file[point_position:]
     return new_root + new_name
-
-
 
 
 class imageName():
@@ -81,7 +81,9 @@ class imageName():
         else:
             if (self.number == 0):
                 return self.name + "." + self.extension
-            return self.name + "(" + str(self.number) + ")" + "." + self.extension
+            return str(
+                self.name + "(" + str(self.number) + ")" + "." + self.extension
+            )
 
     def increment(self):
         self.number += 1
@@ -131,7 +133,9 @@ def main():
 
         for file in files:
             img, path, filename = pcv.readimage(root + "/" + file)
-            image_name = get_new_image_name(root, file, "", old_directory, new_directory)
+            image_name = get_new_image_name(
+                root, file, "", old_directory, new_directory
+            )
             cv.imwrite(image_name, img)
 
         for i in range(to_balance - len(files)):
@@ -142,7 +146,9 @@ def main():
             augmented_image = augmentation_functions[random_number](img)
             label = augmentations_labels[random_number]
 
-            image_name = get_new_image_name(root, file, label, old_directory, new_directory)
+            image_name = get_new_image_name(
+                root, file, label, old_directory, new_directory
+            )
             new_filename = imageName(image_name)
 
             while os.path.isfile(new_filename.get_name()):
@@ -153,11 +159,9 @@ def main():
             print(image_name)
 
 
-
-
 if __name__ == "__main__":
-    # try:
-    main()
-    # except Exception as e:
-        # print(e)
-        # exit(1)
+    try:
+        main()
+    except Exception as e:
+        print(e)
+        exit(1)
