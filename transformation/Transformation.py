@@ -4,8 +4,12 @@ import argparse
 from plantcv import plantcv as pcv
 import plantcv as pcv2
 import os
+<<<<<<< HEAD
 import matplotlib.pyplot as plt
 import seaborn as sns
+=======
+
+>>>>>>> a20a41b9c81a79f1c033613af585560919c7cb4f
 
 def parse_argument() -> str:
 
@@ -220,6 +224,12 @@ def main():
     #print(hue_cir)
     pcv.print_image(img=color_histogram, filename="histo.png")
 
+
+
+
+def main():
+
+    path, dest, options = parse_argument()
 
     if os.path.isfile(path):
         display_transformations(path, dest, options)
