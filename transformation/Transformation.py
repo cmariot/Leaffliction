@@ -2,12 +2,10 @@
 
 import argparse
 from plantcv import plantcv as pcv
-<<<<<<< HEAD
 import plantcv as pcv2
-=======
 import os
->>>>>>> 96c063466d9c241d570810214afd603fc158b49f
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def parse_argument() -> str:
 
@@ -88,7 +86,6 @@ def parse_argument() -> str:
     )
 
 
-
 def display_transformations(image_path, dest, options):
 
     # Read the image
@@ -122,16 +119,15 @@ def display_transformations(image_path, dest, options):
 
 def main():
 
-<<<<<<< HEAD
-    transformations = {
-        "Gaussian Blur": gaussian_blur,
-    }
+
 
     # for key, value in transformations.items():
     #     print(key)
     #     transformed_image = value(image)
     #     pcv.plot_image(transformed_image)
+    path, dest, options = parse_argument()
 
+    image, path, name = pcv.readimage(path)
     s = pcv.rgb2gray_hsv(rgb_img=image, channel='s')
     pcv.plot_image(s)
     s_thresh = pcv.threshold.binary(gray_img=s, threshold=85, object_type='light')
@@ -197,14 +193,33 @@ def main():
     print("analysis")
     pcv.plot_image(analysis_image)
 
+
     color_histogram = pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
-    pcv.plot_image(color_histogram)
+    #pcv.plot_image(color_histogram)
+    #print(color_histogram)
+    res = pcv.outputs.save_results("histo")
+    #print(list(pcv.outputs.observations['default_1']['saturation_frequencies'].keys()))
+    print(pcv.outputs.observations['default_1']['blue_frequencies']['value'])
+    print(pcv.outputs.observations['default_1']['blue_frequencies']['label'])
+
+    y = pcv.outputs.observations['default_1']['blue_frequencies']['value']
+    x = pcv.outputs.observations['default_1']['blue_frequencies']['label']
+
+    plt.plot(x, y, label="blue")
+
+    y = pcv.outputs.observations['default_1']['green_frequencies']['value']
+    x = pcv.outputs.observations['default_1']['green_frequencies']['label']
+    plt.plot(x, y, label="green")
+    y = pcv.outputs.observations['default_1']['red_frequencies']['value']
+    x = pcv.outputs.observations['default_1']['red_frequencies']['label']
+    plt.plot(x, y, label="red")
+    plt.legend()
+    plt.show()
+    hue_cir = pcv.outputs.observations['default_1']['hue_frequencies']
+    print(list(hue_cir.keys()))
+    #print(hue_cir)
     pcv.print_image(img=color_histogram, filename="histo.png")
 
-
-=======
-    path, dest, options = parse_argument()
->>>>>>> 96c063466d9c241d570810214afd603fc158b49f
 
     if os.path.isfile(path):
         display_transformations(path, dest, options)
