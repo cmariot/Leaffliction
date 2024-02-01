@@ -2,11 +2,8 @@
 
 import argparse
 from plantcv import plantcv as pcv
-<<<<<<< HEAD
 import plantcv as pcv2
-=======
 import os
->>>>>>> 96c063466d9c241d570810214afd603fc158b49f
 
 
 def parse_argument() -> str:
@@ -88,7 +85,6 @@ def parse_argument() -> str:
     )
 
 
-
 def display_transformations(image_path, dest, options):
 
     # Read the image
@@ -96,41 +92,6 @@ def display_transformations(image_path, dest, options):
 
     # Display the original image
     pcv.plot_image(image)
-
-    #  We want to remove as much background as possible without loosing any information about the plant
-
-    # Convert the image to grayscale by extracting the saturation channel
-    s = pcv.rgb2gray_hsv(
-        rgb_img=image,
-        channel='s'
-    )
-    pcv.plot_image(s)
-
-    # Threshold the grayscaled image
-    s_thresh = pcv.threshold.binary(
-        gray_img=s,
-        threshold=60,
-        object_type='light'
-    )
-    pcv.plot_image(s_thresh)
-
-
-
-
-
-
-
-def main():
-
-<<<<<<< HEAD
-    transformations = {
-        "Gaussian Blur": gaussian_blur,
-    }
-
-    # for key, value in transformations.items():
-    #     print(key)
-    #     transformed_image = value(image)
-    #     pcv.plot_image(transformed_image)
 
     s = pcv.rgb2gray_hsv(rgb_img=image, channel='s')
     pcv.plot_image(s)
@@ -202,9 +163,10 @@ def main():
     pcv.print_image(img=color_histogram, filename="histo.png")
 
 
-=======
+
+def main():
+
     path, dest, options = parse_argument()
->>>>>>> 96c063466d9c241d570810214afd603fc158b49f
 
     if os.path.isfile(path):
         display_transformations(path, dest, options)
