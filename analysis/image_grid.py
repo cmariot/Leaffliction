@@ -22,7 +22,7 @@ def main():
         "Grape spot": cv.imread("../images/Grape_spot/image (1).JPG")
     }
 
-    for i, (ax, (label, img)) in enumerate(zip(axs.flat, images.items())):
+    for ax, (label, img) in zip(axs.flat, images.items()):
         ax.imshow(img)
         ax.set_title(label)
         ax.set(xticks=[], yticks=[])
