@@ -105,30 +105,31 @@ def display_transformations(image_path, dest, options):
     # pcv.params.debug = "plot"
 
     image, path, name = pcv.readimage(image_path)
+    pcv.plot_image(image)
     s = pcv.rgb2gray_hsv(rgb_img=image, channel='s')
-    pcv.plot_image(s)
+    #pcv.plot_image(s)
     s_thresh = pcv.threshold.binary(gray_img=s, threshold=85, object_type='light')
     #pcv.plot_image(s_thresh)
     s_mblur = pcv.median_blur(gray_img=s_thresh, ksize=5)
-    pcv.plot_image(s_mblur)
-    gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(3, 3), sigma_x=0, sigma_y=None)
-    #pcv.plot_image(gaussian_bluri)
+    #pcv.plot_image(s_mblur)
+    gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(1, 1), sigma_x=0, sigma_y=None)
+    pcv.plot_image(gaussian_bluri)
 
     b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
-    pcv.plot_image(b)
+    #pcv.plot_image(b)
 
     b_thresh=pcv.threshold.binary(gray_img=b, threshold=135,object_type='light')
 
     bs = pcv.logical_or(bin_img1=s_mblur, bin_img2=b_thresh)
-    pcv.plot_image(bs)
+    #pcv.plot_image(bs)
 
     masked = pcv.apply_mask(img=image, mask=bs, mask_color='white')
-    pcv.plot_image(masked)
+    #pcv.plot_image(masked)
 
     masked_a = pcv.rgb2gray_lab(rgb_img=masked, channel='a')
     masked_b = pcv.rgb2gray_lab(rgb_img=masked, channel='b')
 
-    pcv.plot_image(masked_a)
+    #pcv.plot_image(masked_a)
     #pcv.plot_image(masked_b)
 
     maskeda_thresh = pcv.threshold.binary(gray_img=masked_a, threshold=115, object_type='dark')
@@ -158,20 +159,19 @@ def display_transformations(image_path, dest, options):
     closed_ab = pcv.closing(gray_img=ab_fill)
     #pcv.plot_image(gray_img=ab_fill)
     masked2= pcv.apply_mask(img=masked, mask=ab_fill, mask_color='white')
-    # pcv.plot_image(masked2)
+    pcv.plot_image(masked2)
 
     #obj_hierachy= pcv.find_objects(img=masked2, mask=ab_fill)
-
     #roi1, roi_hierarchy = pcv.roi.rectangle(img=masked2, x=(image.shape[0] * 0.1), y=(image.shape[1] * 0.1), w=(image.shape[0] * 0.9), h=(image.shape[1] * 0.9))
     roi= pcv.roi.rectangle(img=masked2, x=0,y=0, w=image.shape[0], h=image.shape[1])
     kept_mask = pcv.roi.filter(mask=ab_fill, roi=roi, roi_type='partial')
-    #pcv.plot_image(filtered)`
+    pcv.plot_image(kept_mask)
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
     print("analysis")
-    # pcv.plot_image(analysis_image)
+    pcv.plot_image(analysis_image)
     #print(vars(pcv))
 
-    print("DTYPE:", bs.dtype)
+    #print("DTYPE:", bs.dtype)
 
     import cv2
 
@@ -179,38 +179,32 @@ def display_transformations(image_path, dest, options):
 
     # Create a new array, filled with the 2 first dimensions of image
 
-    arr = np.zeros((masked2.shape[0], masked2.shape[1]), dtype=np.uint8)
-    for i in range(masked2.shape[0]):
-        for j in range(masked2.shape[1]):
-            arr[i][j] = masked2[i][j][1]
-    print("SAHPE :", arr.shape)
+    print(ab.shape)
+    
+    # arr = np.zeros((ab.shape[0], ab.shape[1]), dtype=np.uint8)
+    # for i in range(ab.shape[0]):
+    #     for j in range(ab.shape[1]):
+    #         arr[i][j] = ab[i][j][0]
+    #print("SAHPE :", arr.shape)
 
     img, _, _ = pcv.readimage(image_path)
-    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=analysis_image, mask=arr, label='default')
-    top_y, bottom_y, center_v_y = pcv.homology.y_axis_pseudolandmarks(img=analysis_image, mask=arr, label='default')
 
-    print("TOP X:", top_x)
-    print("TOP Y:", top_y)
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=ab, label='default')
+    print("topx", top_x)
+    print("topy", bottom_x)
+    print("center", center_v_x)
 
-    plt.imshow(arr, cmap='gray')
+    plt.imshow(image)
 
     for i in range(len(top_x)):
         plt.scatter(top_x[i][0][0], top_x[i][0][1], c='r', s=10)
 
-    for i in range(len(top_y)):
-        plt.scatter(top_y[i][0][0], top_y[i][0][1], c='r', s=10)
-
     for i in range(len(bottom_x)):
         plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='b', s=10)
 
-    for i in range(len(bottom_y)):
-        plt.scatter(bottom_y[i][0][0], bottom_y[i][0][1], c='b', s=10)
-
     for i in range(len(center_v_x)):
         plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='g', s=10)
-
-    for i in range(len(center_v_y)):
-        plt.scatter(center_v_y[i][0][0], center_v_y[i][0][1], c='g', s=10)
+    plt.show()
 
 
     # for i in range(len(bottom)):
@@ -219,11 +213,6 @@ def display_transformations(image_path, dest, options):
     # for i in range(len(center_v)):
         # plt.scatter(center_v[i][0][0], center_v[i][0][1], c='g', s=10)
 #
-    plt.show()
-
-
-
-
 
     color_histogram = pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
     #print(color_histogram)
