@@ -7,6 +7,8 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import image as mplimg
+import cv2
+import numpy as np
 
 def parse_argument() -> str:
 
@@ -119,7 +121,7 @@ def determine_threshold(b):
 
         if max_diff < diff:
             max_diff = diff
-        print("iter", loop, "lum", cur_lum, "delta", diff)
+        #print("iter", loop, "lum", cur_lum, "delta", diff)
         if (max_diff != diff):
             iter = loop
             break
@@ -130,19 +132,20 @@ def determine_threshold(b):
         b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop, object_type='light')
         cur_lum = total_luminosity(b_thresh)
         diff = past_lum - cur_lum
-        print("iter", loop, "lum", cur_lum, "delta", diff)
+        #print("iter", loop, "lum", cur_lum, "delta", diff)
         if max_diff > diff:
             max_diff = diff
         if (max_diff != diff):
-            print("this one")
+            #print("this one")
             return loop
         past_lum = cur_lum
     return 0
 
-# def determine_threshold(b):
-#     iter = determine_threshold1(b)
-
-
+def gaussian_blurf(img, sat):
+    s = pcv.rgb2gray_hsv(rgb_img=img, channel='s')
+    s_thresh = pcv.threshold.binary(gray_img=s, threshold=sat, object_type='light')
+    gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
+    return gaussian_bluri
 
 def display_transformations(image_path, dest, options):
 
@@ -150,106 +153,52 @@ def display_transformations(image_path, dest, options):
 
     image, path, name = pcv.readimage(image_path)
     pcv.plot_image(image)
-    s = pcv.rgb2gray_lab(rgb_img=image, channel='l')
-    #pcv.plot_image(s)
+    print("original")
 
-    s_thresh = pcv.threshold.binary(gray_img=s, threshold=80, object_type='light')
-    pcv.plot_image(s_thresh)
-
-
-    s_mblur = pcv.median_blur(gray_img=s_thresh, ksize=5)
-    #pcv.plot_image(s_mblur)
-    gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(1, 1), sigma_x=0, sigma_y=None)
-    #pcv.plot_image(gaussian_bluri)
+    l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
+    #pcv.plot_image(l)
+    l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
+    #pcv.plot_image(l_thresh)
 
     b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
     #pcv.plot_image(b)
-
     value_threshold = determine_threshold(b)
-    print("Value", determine_threshold(b))
+    print("Value b threshold", determine_threshold(b))
     # pcv.plot_image(pcv.threshold.binary(gray_img=b, threshold=116,object_type='light'))
     b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
 
+    bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
 
-    masked = pcv.apply_mask(img=image, mask=b_thresh, mask_color='white')
-    print("masked")
-    pcv.plot_image(masked)
+    masked = pcv.apply_mask(img=image, mask=bminusl_thresh, mask_color='white')
+    gaussian_bluri = gaussian_blurf(masked, 80)
 
-    # masked_a = pcv.rgb2gray_lab(rgb_img=masked, channel='a')
-    # masked_b = pcv.rgb2gray_lab(rgb_img=masked, channel='b')
+    pcv.plot_image(gaussian_bluri)
+    print("gaussian blur")
 
-    #pcv.plot_image(masked_a)
-    #pcv.plot_image(masked_b)
-
-    # maskeda_thresh = pcv.threshold.binary(gray_img=masked_a, threshold=115, object_type='dark')
-    # maskeda_thresh1 = pcv.threshold.binary(gray_img=masked_a, threshold=135, object_type='light')
-    # maskedb_thresh = pcv.threshold.binary(gray_img=masked_b, threshold=116, object_type='light')
-
-    #pcv.plot_image(maskeda_thresh)
-    #pcv.plot_image(maskeda_thresh1)
-    #pcv.plot_image(maskedb_thresh)
-
-    # ab1 = pcv.logical_or(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
-    # ab = pcv.logical_or(bin_img1=maskeda_thresh1, bin_img2=ab1)
-
-    # pcv.plot_image(ab1)
-    # pcv.plot_image(ab)
-
-    # opened_ab = pcv.opening(gray_img=ab)
-    # #pcv.plot_image(opened_ab)
-
-    # xor_img = pcv.logical_xor(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
-    #pcv.plot_image(xor_img)
-
-    b_fill = pcv.fill(bin_img=b_thresh, size=200)
+    b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
     print("fill")
-    #pcv.plot_image(b_fill)
 
-    #pcv.plot_image(ab_fill)
-    # closed_ab = pcv.closing(gray_img=ab_fill)
-    #pcv.plot_image(gray_img=ab_fill)
     masked2= pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
-    #pcv.plot_image(masked2)
+    print("mask")
+    pcv.plot_image(masked2)
 
-    #obj_hierachy= pcv.find_objects(img=masked2, mask=ab_fill)
-    #roi1, roi_hierarchy = pcv.roi.rectangle(img=masked2, x=(image.shape[0] * 0.1), y=(image.shape[1] * 0.1), w=(image.shape[0] * 0.9), h=(image.shape[1] * 0.9))
     roi= pcv.roi.rectangle(img=masked2, x=0,y=0, w=image.shape[0], h=image.shape[1])
     kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
     
-    print("kept")
     pcv.plot_image(kept_mask)
 
-    #device, obj, mask = pcv.object_composition(image, roi_objects, hierarchy, device, debug=True)
 
     labelo, obj = pcv.create_labels(mask=kept_mask)
 
 
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
-    print("analysis")
+    print("analye object")
     pcv.plot_image(analysis_image)
-    #print(vars(pcv))
 
-    #print("DTYPE:", bs.dtype)
-
-    import cv2
-
-    import numpy as np
-
-    # Create a new array, filled with the 2 first dimensions of image
-
-    
-    # arr = np.zeros((ab.shape[0], ab.shape[1]), dtype=np.uint8)
-    # for i in range(ab.shape[0]):
-    #     for j in range(ab.shape[1]):
-    #         arr[i][j] = ab[i][j][0]
-    #print("SAHPE :", arr.shape)
+    print("pseudolandmarks")
     plt.imshow(mplimg.imread(image_path))
     top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=b_fill, label='default')
-    # print("topx", top_x)
-    # print("topy", bottom_x)
-    # print("center", center_v_x)
 
-    # plt.imshow(image)
 
     for i in range(len(top_x)):
         plt.scatter(top_x[i][0][0], top_x[i][0][1], c='r', s=10)
@@ -258,23 +207,16 @@ def display_transformations(image_path, dest, options):
         plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='b', s=10)
 
     for i in range(len(center_v_x)):
-        plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='g', s=10)
+        plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='y', s=10)
     plt.show()
 
-
-    # for i in range(len(bottom)):
-        # plt.scatter(bottom[i][0][0], bottom[i][0][1], c='b', s=10)
-#
-    # for i in range(len(center_v)):
-        # plt.scatter(center_v[i][0][0], center_v[i][0][1], c='g', s=10)
-#
 
     color_histogram = pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
     #print(color_histogram)
     res = pcv.outputs.save_results("histo")
     #print(list(pcv.outputs.observations['default_1']['saturation_frequencies'].keys()))
-    print(pcv.outputs.observations['default_1']['blue_frequencies']['value'])
-    print(f"SUM = {sum(pcv.outputs.observations['default_1']['lightness_frequencies']['value'])}")
+    #print(pcv.outputs.observations['default_1']['blue_frequencies']['value'])
+    #print(f"SUM = {sum(pcv.outputs.observations['default_1']['lightness_frequencies']['value'])}")
 
 
     dict_label = {"blue_frequencies" : 1, "green_frequencies": 1, "green-magenta_frequencies" : 1 , "lightness_frequencies" : 2.55, "red_frequencies" : 1, "blue-yellow_frequencies" : 1, "hue_frequencies" : 1, "saturation_frequencies" : 2.55, "value_frequencies" : 2.55}
@@ -285,7 +227,6 @@ def display_transformations(image_path, dest, options):
     plt.show()
     hue_cir = pcv.outputs.observations['default_1']['hue_frequencies']
     print(list(hue_cir.keys()))
-    #print(hue_cir)
     pcv.print_image(img=color_histogram, filename="histo.png")
 
 
