@@ -6,7 +6,7 @@ import plantcv as pcv2
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from matplotlib import image as mplimg
 
 def parse_argument() -> str:
 
@@ -150,10 +150,11 @@ def display_transformations(image_path, dest, options):
 
     image, path, name = pcv.readimage(image_path)
     pcv.plot_image(image)
-    s = pcv.rgb2gray_hsv(rgb_img=image, channel='s')
+    s = pcv.rgb2gray_lab(rgb_img=image, channel='l')
     #pcv.plot_image(s)
 
     s_thresh = pcv.threshold.binary(gray_img=s, threshold=80, object_type='light')
+    pcv.plot_image(s_thresh)
 
 
     s_mblur = pcv.median_blur(gray_img=s_thresh, ksize=5)
@@ -164,57 +165,65 @@ def display_transformations(image_path, dest, options):
     b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
     #pcv.plot_image(b)
 
+    value_threshold = determine_threshold(b)
     print("Value", determine_threshold(b))
-    pcv.plot_image(pcv.threshold.binary(gray_img=b, threshold=116,object_type='light'))
-    b_thresh=pcv.threshold.binary(gray_img=b, threshold=116,object_type='light')
-    bs = pcv.logical_or(bin_img1=s_mblur, bin_img2=b_thresh)
-    #pcv.plot_image(bs)
+    # pcv.plot_image(pcv.threshold.binary(gray_img=b, threshold=116,object_type='light'))
+    b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
+
 
     masked = pcv.apply_mask(img=image, mask=b_thresh, mask_color='white')
     print("masked")
     pcv.plot_image(masked)
 
-    masked_a = pcv.rgb2gray_lab(rgb_img=masked, channel='a')
-    masked_b = pcv.rgb2gray_lab(rgb_img=masked, channel='b')
+    # masked_a = pcv.rgb2gray_lab(rgb_img=masked, channel='a')
+    # masked_b = pcv.rgb2gray_lab(rgb_img=masked, channel='b')
 
     #pcv.plot_image(masked_a)
     #pcv.plot_image(masked_b)
 
-    maskeda_thresh = pcv.threshold.binary(gray_img=masked_a, threshold=115, object_type='dark')
-    maskeda_thresh1 = pcv.threshold.binary(gray_img=masked_a, threshold=135, object_type='light')
-    maskedb_thresh = pcv.threshold.binary(gray_img=masked_b, threshold=116, object_type='light')
+    # maskeda_thresh = pcv.threshold.binary(gray_img=masked_a, threshold=115, object_type='dark')
+    # maskeda_thresh1 = pcv.threshold.binary(gray_img=masked_a, threshold=135, object_type='light')
+    # maskedb_thresh = pcv.threshold.binary(gray_img=masked_b, threshold=116, object_type='light')
 
     #pcv.plot_image(maskeda_thresh)
     #pcv.plot_image(maskeda_thresh1)
     #pcv.plot_image(maskedb_thresh)
 
-    ab1 = pcv.logical_or(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
-    ab = pcv.logical_or(bin_img1=maskeda_thresh1, bin_img2=ab1)
+    # ab1 = pcv.logical_or(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
+    # ab = pcv.logical_or(bin_img1=maskeda_thresh1, bin_img2=ab1)
 
     # pcv.plot_image(ab1)
     # pcv.plot_image(ab)
 
-    opened_ab = pcv.opening(gray_img=ab)
-    #pcv.plot_image(opened_ab)
+    # opened_ab = pcv.opening(gray_img=ab)
+    # #pcv.plot_image(opened_ab)
 
-    xor_img = pcv.logical_xor(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
+    # xor_img = pcv.logical_xor(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
     #pcv.plot_image(xor_img)
 
-    ab_fill = pcv.fill(bin_img=b_thresh, size=200)
+    b_fill = pcv.fill(bin_img=b_thresh, size=200)
     print("fill")
-    pcv.plot_image(ab_fill)
+    #pcv.plot_image(b_fill)
 
     #pcv.plot_image(ab_fill)
-    closed_ab = pcv.closing(gray_img=ab_fill)
+    # closed_ab = pcv.closing(gray_img=ab_fill)
     #pcv.plot_image(gray_img=ab_fill)
-    masked2= pcv.apply_mask(img=masked, mask=ab_fill, mask_color='white')
-    pcv.plot_image(masked2)
+    masked2= pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
+    #pcv.plot_image(masked2)
 
     #obj_hierachy= pcv.find_objects(img=masked2, mask=ab_fill)
     #roi1, roi_hierarchy = pcv.roi.rectangle(img=masked2, x=(image.shape[0] * 0.1), y=(image.shape[1] * 0.1), w=(image.shape[0] * 0.9), h=(image.shape[1] * 0.9))
     roi= pcv.roi.rectangle(img=masked2, x=0,y=0, w=image.shape[0], h=image.shape[1])
-    kept_mask = pcv.roi.filter(mask=ab_fill, roi=roi, roi_type='partial')
+    kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
+    
+    print("kept")
     pcv.plot_image(kept_mask)
+
+    #device, obj, mask = pcv.object_composition(image, roi_objects, hierarchy, device, debug=True)
+
+    labelo, obj = pcv.create_labels(mask=kept_mask)
+
+
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
     print("analysis")
     pcv.plot_image(analysis_image)
@@ -228,22 +237,19 @@ def display_transformations(image_path, dest, options):
 
     # Create a new array, filled with the 2 first dimensions of image
 
-    print(ab.shape)
     
     # arr = np.zeros((ab.shape[0], ab.shape[1]), dtype=np.uint8)
     # for i in range(ab.shape[0]):
     #     for j in range(ab.shape[1]):
     #         arr[i][j] = ab[i][j][0]
     #print("SAHPE :", arr.shape)
+    plt.imshow(mplimg.imread(image_path))
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=b_fill, label='default')
+    # print("topx", top_x)
+    # print("topy", bottom_x)
+    # print("center", center_v_x)
 
-    img, _, _ = pcv.readimage(image_path)
-
-    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=ab_fill, label='default')
-    print("topx", top_x)
-    print("topy", bottom_x)
-    print("center", center_v_x)
-
-    plt.imshow(image)
+    # plt.imshow(image)
 
     for i in range(len(top_x)):
         plt.scatter(top_x[i][0][0], top_x[i][0][1], c='r', s=10)
