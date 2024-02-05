@@ -86,6 +86,12 @@ def parse_argument() -> str:
         options
     )
 
+def total_luminosity(image):
+    tot = 0
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            tot = tot + image[i][j]
+    return tot
 
 def plot_stat_hist(label, sc=1):
 
@@ -100,6 +106,44 @@ def plot_stat_hist(label, sc=1):
 
     plt.plot(x, y, label=label)
 
+def determine_threshold(b):
+    b_thresh=pcv.threshold.binary(gray_img=b, threshold=50,object_type='light')
+    past_lum = total_luminosity(b_thresh)
+    max_diff = 0
+    iter = 0
+    for loop in range(50, 250, 2):
+        b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop,object_type='light')
+        #pcv.plot_image(b_thresh)
+        cur_lum = total_luminosity(b_thresh)
+        diff = past_lum - cur_lum
+
+        if max_diff < diff:
+            max_diff = diff
+        print("iter", loop, "lum", cur_lum, "delta", diff)
+        if (max_diff != diff):
+            iter = loop
+            break
+        past_lum = cur_lum
+    max_diff = diff
+
+    for loop in range(iter, 250, 1):
+        b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop, object_type='light')
+        cur_lum = total_luminosity(b_thresh)
+        diff = past_lum - cur_lum
+        print("iter", loop, "lum", cur_lum, "delta", diff)
+        if max_diff > diff:
+            max_diff = diff
+        if (max_diff != diff):
+            print("this one")
+            return loop
+        past_lum = cur_lum
+    return 0
+
+# def determine_threshold(b):
+#     iter = determine_threshold1(b)
+
+
+
 def display_transformations(image_path, dest, options):
 
     # pcv.params.debug = "plot"
@@ -108,23 +152,27 @@ def display_transformations(image_path, dest, options):
     pcv.plot_image(image)
     s = pcv.rgb2gray_hsv(rgb_img=image, channel='s')
     #pcv.plot_image(s)
-    s_thresh = pcv.threshold.binary(gray_img=s, threshold=85, object_type='light')
-    #pcv.plot_image(s_thresh)
+
+    s_thresh = pcv.threshold.binary(gray_img=s, threshold=80, object_type='light')
+
+
     s_mblur = pcv.median_blur(gray_img=s_thresh, ksize=5)
     #pcv.plot_image(s_mblur)
     gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(1, 1), sigma_x=0, sigma_y=None)
-    pcv.plot_image(gaussian_bluri)
+    #pcv.plot_image(gaussian_bluri)
 
     b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
     #pcv.plot_image(b)
 
-    b_thresh=pcv.threshold.binary(gray_img=b, threshold=135,object_type='light')
-
+    print("Value", determine_threshold(b))
+    pcv.plot_image(pcv.threshold.binary(gray_img=b, threshold=116,object_type='light'))
+    b_thresh=pcv.threshold.binary(gray_img=b, threshold=116,object_type='light')
     bs = pcv.logical_or(bin_img1=s_mblur, bin_img2=b_thresh)
     #pcv.plot_image(bs)
 
-    masked = pcv.apply_mask(img=image, mask=bs, mask_color='white')
-    #pcv.plot_image(masked)
+    masked = pcv.apply_mask(img=image, mask=b_thresh, mask_color='white')
+    print("masked")
+    pcv.plot_image(masked)
 
     masked_a = pcv.rgb2gray_lab(rgb_img=masked, channel='a')
     masked_b = pcv.rgb2gray_lab(rgb_img=masked, channel='b')
@@ -134,7 +182,7 @@ def display_transformations(image_path, dest, options):
 
     maskeda_thresh = pcv.threshold.binary(gray_img=masked_a, threshold=115, object_type='dark')
     maskeda_thresh1 = pcv.threshold.binary(gray_img=masked_a, threshold=135, object_type='light')
-    maskedb_thresh = pcv.threshold.binary(gray_img=masked_b, threshold=135, object_type='light')
+    maskedb_thresh = pcv.threshold.binary(gray_img=masked_b, threshold=116, object_type='light')
 
     #pcv.plot_image(maskeda_thresh)
     #pcv.plot_image(maskeda_thresh1)
@@ -152,9 +200,10 @@ def display_transformations(image_path, dest, options):
     xor_img = pcv.logical_xor(bin_img1=maskeda_thresh, bin_img2=maskedb_thresh)
     #pcv.plot_image(xor_img)
 
-    ab_fill = pcv.fill(bin_img=ab, size=200)
+    ab_fill = pcv.fill(bin_img=b_thresh, size=200)
     print("fill")
-    # pcv.plot_image(ab_fill)
+    pcv.plot_image(ab_fill)
+
     #pcv.plot_image(ab_fill)
     closed_ab = pcv.closing(gray_img=ab_fill)
     #pcv.plot_image(gray_img=ab_fill)
@@ -189,7 +238,7 @@ def display_transformations(image_path, dest, options):
 
     img, _, _ = pcv.readimage(image_path)
 
-    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=ab, label='default')
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=ab_fill, label='default')
     print("topx", top_x)
     print("topy", bottom_x)
     print("center", center_v_x)
@@ -232,23 +281,6 @@ def display_transformations(image_path, dest, options):
     print(list(hue_cir.keys()))
     #print(hue_cir)
     pcv.print_image(img=color_histogram, filename="histo.png")
-
-
-    homolog_pts, start_pts, stop_pts, ptvals, chain, max_dist = pcv.homology.acute(img=img,
-                                                                               mask=arr, win=42,
-                                                                               threshold=130)
-    img_plms = image.copy()
-    cv2.drawContours(img_plms, homolog_pts, -1, (255, 255, 255), pcv.params.line_thickness)
-
-
-    pcv.plot_image(img_plms)
-    plm_fig=plt.figure(figsize=(7, 10))
-    plm_fig=plt.imshow(img_plms)
-    plm_fig=plt.xscale('linear')
-    plm_fig=plt.axis('off')
-    plt.show()
-
-
 
 
 def main():
