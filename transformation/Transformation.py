@@ -106,12 +106,12 @@ def plot_stat_hist(label, sc=1):
     plt.plot(x, y, label=label)
 
 def determine_threshold(b):
-    b_thresh=pcv.threshold.binary(gray_img=b, threshold=50,object_type='light')
+    b_thresh=pcv.threshold.binary(gray_img=b, threshold=50, max_value=255, object_type='light')
     past_lum = total_luminosity(b_thresh)
     max_diff = 0
     iter = 0
     for loop in range(50, 250, 2):
-        b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop,object_type='light')
+        b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop, max_value=255, object_type='light')
         #pcv.plot_image(b_thresh)
         cur_lum = total_luminosity(b_thresh)
         diff = past_lum - cur_lum
@@ -126,7 +126,7 @@ def determine_threshold(b):
     max_diff = diff
 
     for loop in range(iter, 250, 1):
-        b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop, object_type='light')
+        b_thresh=pcv.threshold.binary(gray_img=b, threshold=loop, max_value=255, object_type='light')
         cur_lum = total_luminosity(b_thresh)
         diff = past_lum - cur_lum
         #print("iter", loop, "lum", cur_lum, "delta", diff)
@@ -140,7 +140,7 @@ def determine_threshold(b):
 
 def gaussian_blurf(img, sat):
     s = pcv.rgb2gray_hsv(rgb_img=img, channel='s')
-    s_thresh = pcv.threshold.binary(gray_img=s, threshold=sat, object_type='light')
+    s_thresh = pcv.threshold.binary(gray_img=s, threshold=sat, max_value=255, object_type='light')
     gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
     return gaussian_bluri
 
@@ -192,7 +192,7 @@ def plot_histogram(image, labeled_mask):
 
 def display_transformations(image_path, dest, options):
 
-    # pcv.params.debug = "plot"
+    #pcv.params.debug = "print"
 
     image, path, name = pcv.readimage(image_path)
     #pcv.plot_image(image)
@@ -200,7 +200,7 @@ def display_transformations(image_path, dest, options):
 
     l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
     #pcv.plot_image(l)
-    l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
+    l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, max_value=255, object_type='light')
     #pcv.plot_image(l_thresh)
 
     b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
@@ -208,7 +208,7 @@ def display_transformations(image_path, dest, options):
     value_threshold = determine_threshold(b)
     print("Value b threshold", determine_threshold(b))
     # pcv.plot_image(pcv.threshold.binary(gray_img=b, threshold=116,object_type='light'))
-    b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
+    b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,max_value=255, object_type='light')
 
     bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
 
@@ -225,15 +225,45 @@ def display_transformations(image_path, dest, options):
     print("mask")
     #pcv.plot_image(masked2)
 
-    roi= pcv.roi.rectangle(img=masked2, x=0,y=0, w=image.shape[0], h=image.shape[1])
-    kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
+    id_objects, obj_hierarchy = pcv.find_objects(masked2, b_fill)
+
+    roi, roi_hierarchy= pcv.roi.rectangle(img=masked2, x=0, y=0, w=image.shape[0], h=image.shape[1])
+
+    roi_objects, hierarchy3, kept_mask, obj_area = pcv.roi_objects(img=image, roi_contour=roi,
+                                                                    roi_hierarchy=roi_hierarchy,
+                                                                    object_contour=id_objects,
+                                                                    obj_hierarchy=obj_hierarchy,
+                                                                    roi_type='partial')
+
+    obj, mask = pcv.object_composition(img=image, contours=roi_objects, hierarchy=hierarchy3)
+
+    # pcv.plot_image(mask)
+
+    shape_img = pcv.analyze_object(img=image, obj=obj, mask=mask, label="default")
+    # pcv.plot_image(shape_img)
+    boundary_img1 = pcv.analyze_bound_horizontal(img=image, obj=obj, mask=mask,
+                                                   line_position=1680, label="default")
+
+    pcv.plot_image(boundary_img1)
+    color_histogram = pcv.analyze_color(rgb_img=image, mask=mask, hist_plot_type='all', label="default")
+    pcv.plot_image(color_histogram)
+    gray_img = pcv.rgb2gray_hsv(rgb_img=image, channel='v')
+    pseudocolored_img = pcv.visualize.pseudocolor(gray_img=gray_img, mask=b_fill, cmap='jet')
+    pcv.plot_image(pseudocolored_img)
+    pcv.print_results(filename="histo_results.txt")
+
+
+
+
+    # roi= pcv.roi.rectangle(img=masked2, x=0,y=0, w=image.shape[0], h=image.shape[1])
+    # kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
 
     #pcv.plot_image(kept_mask)
 
 
-    labelo, obj = pcv.create_labels(mask=kept_mask)
+    # labelo, obj = pcv.create_labels(mask=kept_mask)
 
-    analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
+    # analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
     #print("analye object")
     #pcv.plot_image(analysis_image)
 
