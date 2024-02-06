@@ -2,13 +2,10 @@
 
 import argparse
 from plantcv import plantcv as pcv
-import plantcv as pcv2
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib import image as mplimg
-import cv2
-import numpy as np
+
 
 def parse_argument() -> str:
 
@@ -95,18 +92,7 @@ def total_luminosity(image):
             tot = tot + image[i][j]
     return tot
 
-def plot_stat_hist(label, sc=1):
 
-    y = pcv.outputs.observations['default_1'][label]['value']
-    x = [i * sc for i in  pcv.outputs.observations['default_1'][label]['label']]
-
-    if label == "hue_frequencies":
-        x = x[:int(255 / 2)]
-        y = y[:int(255 / 2)]
-    if label == "blue-yellow_frequencies" or label == "green-magenta_frequencies":
-        x = [x + 128 for x in x]
-
-    plt.plot(x, y, label=label)
 
 def determine_threshold(b):
     b_thresh=pcv.threshold.binary(gray_img=b, threshold=50,object_type='light')
@@ -147,87 +133,135 @@ def gaussian_blurf(img, sat):
     gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
     return gaussian_bluri
 
-def display_transformations(image_path, dest, options):
 
-    # pcv.params.debug = "plot"
+def plot_histogram():
 
-    image, path, name = pcv.readimage(image_path)
-    pcv.plot_image(image)
-    print("original")
+    def plot_stat_hist(label, sc=1):
+        y = pcv.outputs.observations['default_1'][label]['value']
+        x = [i * sc for i in  pcv.outputs.observations['default_1'][label]['label']]
+        if label == "hue_frequencies":
+            x = x[:int(255 / 2)]
+            y = y[:int(255 / 2)]
+        if label == "blue-yellow_frequencies" or label == "green-magenta_frequencies":
+            x = [x + 128 for x in x]
+        plt.plot(x, y, label=label)
+        return
 
-    l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
-    #pcv.plot_image(l)
-    l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
-    #pcv.plot_image(l_thresh)
+    plt.subplots(figsize=(16, 9))
 
-    b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
-    #pcv.plot_image(b)
-    value_threshold = determine_threshold(b)
-    print("Value b threshold", determine_threshold(b))
-    # pcv.plot_image(pcv.threshold.binary(gray_img=b, threshold=116,object_type='light'))
-    b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
-
-    bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
-
-    masked = pcv.apply_mask(img=image, mask=bminusl_thresh, mask_color='white')
-    gaussian_bluri = gaussian_blurf(masked, 80)
-
-    pcv.plot_image(gaussian_bluri)
-    print("gaussian blur")
-
-    b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
-    print("fill")
-
-    masked2= pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
-    print("mask")
-    pcv.plot_image(masked2)
-
-    roi= pcv.roi.rectangle(img=masked2, x=0,y=0, w=image.shape[0], h=image.shape[1])
-    kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
-    
-    pcv.plot_image(kept_mask)
-
-
-    labelo, obj = pcv.create_labels(mask=kept_mask)
-
-
-    analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
-    print("analye object")
-    pcv.plot_image(analysis_image)
-
-    print("pseudolandmarks")
-    plt.imshow(mplimg.imread(image_path))
-    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=b_fill, label='default')
-
-
-    for i in range(len(top_x)):
-        plt.scatter(top_x[i][0][0], top_x[i][0][1], c='r', s=10)
-
-    for i in range(len(bottom_x)):
-        plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='b', s=10)
-
-    for i in range(len(center_v_x)):
-        plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='y', s=10)
-    plt.show()
-
-
-    color_histogram = pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
-    #print(color_histogram)
-    res = pcv.outputs.save_results("histo")
-    #print(list(pcv.outputs.observations['default_1']['saturation_frequencies'].keys()))
-    #print(pcv.outputs.observations['default_1']['blue_frequencies']['value'])
-    #print(f"SUM = {sum(pcv.outputs.observations['default_1']['lightness_frequencies']['value'])}")
-
-
-    dict_label = {"blue_frequencies" : 1, "green_frequencies": 1, "green-magenta_frequencies" : 1 , "lightness_frequencies" : 2.55, "red_frequencies" : 1, "blue-yellow_frequencies" : 1, "hue_frequencies" : 1, "saturation_frequencies" : 2.55, "value_frequencies" : 2.55}
+    dict_label = {
+        "blue_frequencies" : 1,
+        "green_frequencies": 1,
+        "green-magenta_frequencies" : 1 ,
+        "lightness_frequencies" : 2.55,
+        "red_frequencies" : 1,
+        "blue-yellow_frequencies" : 1,
+        "hue_frequencies" : 1,
+        "saturation_frequencies" : 2.55,
+        "value_frequencies" : 2.55
+    }
 
     for key, val in dict_label.items():
         plot_stat_hist(key, val)
+
     plt.legend()
     plt.show()
-    hue_cir = pcv.outputs.observations['default_1']['hue_frequencies']
-    print(list(hue_cir.keys()))
-    pcv.print_image(img=color_histogram, filename="histo.png")
+
+
+def display_transformations(image_path, dest, options):
+
+    # pcv.params.debug = "plot"
+    # pcv.params.debug = "print"
+
+    # Open the image with plantcv and matplotlib
+    # The color of the pcv image is changed :/
+    image, _, _ = pcv.readimage(image_path, mode='rgb')
+    original_image = mplimg.imread(image_path)
+    pcv.plot_image(image)
+
+    # Convert the image to grayscale based on one of the color channels
+    l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
+    b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
+    # pcv.plot_image(l)
+    # pcv.plot_image(b)
+
+    # With the grayscale image, we can apply a threshold to create a binary image
+    # -> Get the best threshold value for the 'b' channel
+    # Apply the threshold to the grayscale image
+    value_threshold = determine_threshold(b)
+    b_thresh = pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
+    l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
+    # pcv.plot_image(b_thresh)
+    # pcv.plot_image(l_thresh)
+
+    # Fusion of the 2 binary images in a mask
+    bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
+    # pcv.plot_image(bminusl_thresh)
+
+    # Apply the mask to the image to get the masked image
+    masked = pcv.apply_mask(img=image, mask=bminusl_thresh, mask_color='white')
+    # pcv.plot_image(masked)
+
+    # The blur is used to reduce the noise in the mask
+    gaussian_bluri = gaussian_blurf(masked, 80)
+    pcv.plot_image(gaussian_bluri)
+    exit()
+
+    b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
+
+    masked2= pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
+
+    gaussian_bluri = gaussian_blurf(masked2, 80)
+
+    pcv.plot_image(gaussian_bluri)
+
+    pcv.plot_image(masked2)
+
+    roi = pcv.roi.rectangle(img=masked2, x=0, y=0, w=image.shape[0], h=image.shape[1])
+    kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
+
+    labelo, obj = pcv.create_labels(mask=kept_mask)
+
+    pcv.plot_image(labelo)
+
+    analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
+
+    pcv.plot_image(analysis_image)
+
+    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
+
+    # _, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
+
+    # images_to_plot = {
+    #     "Original": original_image,
+    #     "Gaussian blur": blur,
+    #     "Mask": masked,
+    #     "ROI Objects": labelo,
+    #     "Analyze object":analysis_image,
+    #     "Pseudolandmarks": original_image
+    # }
+
+    # for (label, img), axe in zip(images_to_plot.items(), ax.flat):
+    #     axe.imshow(img)
+    #     axe.set_title(label)
+    #     axe.set(xticks=[], yticks=[])
+    #     axe.label_outer()
+
+    plt.imshow(original_image)
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=b_fill, label='default')
+
+    for i in range(len(top_x)):
+        plt.scatter(top_x[i][0][0], top_x[i][0][1], c='blue', s=10)
+    for i in range(len(bottom_x)):
+        plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='magenta', s=10)
+    for i in range(len(center_v_x)):
+        plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='orange', s=10)
+
+    plt.show()
+
+    # plot_histogram()
+
+
 
 
 def main():
@@ -246,6 +280,9 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except KeyboardInterrupt:
+        print()
+        exit()
     except Exception as error:
         print(error)
         exit(1)
