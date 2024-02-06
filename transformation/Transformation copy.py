@@ -138,7 +138,56 @@ def determine_threshold(b):
     return 0
 
 
-def plot_histogram():
+def is_roi_border(x, y, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
+    """
+    Return true if the pixel in position x, y is the border of the rectangle
+    defined by the roi parameters.
+    The contour is the line of the rectangle, with a width of roi_line_w.
+
+    :param x: The x position of the pixel
+    :param y: The y position of the pixel
+    :param roi_start_x: The x position of the roi rectangle start
+    :param roi_start_y: The y position of the roi rectangle start
+    :param roi_h: The height of the roi rectangle
+    :param roi_w: The width of the roi rectangle
+    :param roi_line_w: The width of the roi rectangle line
+    """
+
+    # Draw the top line
+    if (
+        (x >= roi_start_x and x <= roi_start_x + roi_w)
+            and
+        (y >= roi_start_y and y <= roi_start_y + roi_line_w)
+    ):
+        return True
+
+    # Draw the bottom line
+    if (
+        (x >= roi_start_x and x <= roi_start_x + roi_w)
+            and
+        (y >= roi_start_y + roi_h - roi_line_w and y <= roi_start_y + roi_h)
+    ):
+        return True
+
+    # Draw the left line
+    if (
+        (x >= roi_start_x and x <= roi_start_x + roi_line_w)
+            and
+        (y >= roi_start_y and y <= roi_start_y + roi_h)
+    ):
+        return True
+
+    # Draw the right line
+    if (
+        (x >= roi_start_x + roi_w - roi_line_w and x <= roi_start_x + roi_w)
+            and
+        (y >= roi_start_y and y <= roi_start_y + roi_h)
+    ):
+        return True
+
+    return False
+
+def plot_histogram(image, kept_mask):
 
     def plot_stat_hist(label, sc=1):
         y = pcv.outputs.observations['default_1'][label]['value']
@@ -150,6 +199,9 @@ def plot_histogram():
             x = [x + 128 for x in x]
         plt.plot(x, y, label=label)
         return
+
+    labels, obj = pcv.create_labels(mask=kept_mask)
+    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=labels,label="default")
 
     plt.subplots(figsize=(16, 9))
 
@@ -184,13 +236,13 @@ def plot_histogram():
 
 def display_transformations(image_path, dest, options):
 
-    # pcv.params.debug = "plot"
-    # pcv.params.debug = "print"
+    pcv.params.debug = "plot"
+    pcv.params.debug = "print"
 
     # Open the image with plantcv and matplotlib
     # The color of the pcv image is changed :/
     image, _, _ = pcv.readimage(image_path, mode='rgb')
-    pcv.plot_image(image)
+    # pcv.plot_image(image)
 
     # Convert the image to grayscale based on one of the color channels
     l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
@@ -202,69 +254,101 @@ def display_transformations(image_path, dest, options):
     # -> Get the best threshold value for the 'b' channel
     # Apply the threshold to the grayscale image
     value_threshold = determine_threshold(b)
-    print("Threshold value for the 'b' channel:", value_threshold)
     b_thresh = pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
-    l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
-    pcv.plot_image(b_thresh)
-    pcv.plot_image(l_thresh)
+    l_thresh = pcv.threshold.binary(gray_img=l, threshold=91, object_type='light')
+    # pcv.plot_image(b_thresh)
+    # pcv.plot_image(l_thresh)
+    # exit()
 
     # Fusion of the 2 binary images in a mask
-    bl_mask = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
-    pcv.plot_image(bl_mask)
+    bl_mask = pcv.logical_and(bin_img1=b_thresh, bin_img2=l_thresh)
+    # pcv.plot_image(bl_mask)
 
     # Remve small objects from the mask that are not part of the plant
     mask = pcv.fill(bin_img=bl_mask, size=100)
-    pcv.plot_image(mask)
+    # pcv.plot_image(mask)
 
     # Blur the mask to reduce the noise in the mask
     blured_mask = pcv.gaussian_blur(img=mask, ksize=(3, 3))
-    pcv.plot_image(blured_mask)
+    # pcv.plot_image(blured_mask)
 
     # Apply the mask to the image to get the masked image
     mask_applied = pcv.apply_mask(img=image, mask=blured_mask, mask_color='white')
-    pcv.plot_image(mask_applied)
-    exit()
+    # pcv.plot_image(mask_applied)
+    # exit()
 
-    bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
+    # bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
 
-    # The blur is used to reduce the noise in the mask
-    gaussian_bluri = pcv.gaussian_blur(img=bminusl_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
+    # # The blur is used to reduce the noise in the mask
+    # gaussian_bluri = pcv.gaussian_blur(img=bminusl_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
 
-    # Apply the mask to the image to get the masked image
-    masked = pcv.apply_mask(img=image, mask=gaussian_bluri, mask_color='white')
-    b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
-    masked2 = pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
+    # # Apply the mask to the image to get the masked image
+    # masked = pcv.apply_mask(img=image, mask=gaussian_bluri, mask_color='white')
+    # b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
+    # masked2 = pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
 
-    pcv.plot_image(bminusl_thresh)
-    pcv.plot_image(b_fill)
-    pcv.plot_image(masked2)
+    # pcv.plot_image(bminusl_thresh)
+    # pcv.plot_image(b_fill)
+    # pcv.plot_image(masked2)
 
-    pcv.plot_image(masked2)
-
-
+    # pcv.plot_image(masked2)
 
 
-    roi = pcv.roi.rectangle(img=masked2, x=0, y=0, w=image.shape[0], h=image.shape[1])
-    kept_mask = pcv.roi.filter(mask=b_fill, roi=roi, roi_type='partial')
+    # id_objects, obj_hierarchy = pcv.find_objects(masked2, b_fill)
 
-    labelo, obj = pcv.create_labels(mask=kept_mask)
+    # roi, roi_hierarchy= pcv.roi.rectangle(img=masked2, x=0, y=0, w=image.shape[0], h=image.shape[1])
+
+    # roi_objects, hierarchy3, kept_mask, obj_area = pcv.roi_objects(img=image, roi_contour=roi,
+    #                                                                 roi_hierarchy=roi_hierarchy,
+    #                                                                 object_contour=id_objects,
+    #                                                                 obj_hierarchy=obj_hierarchy,
+    #                                                                 roi_type='partial')
+
+    # obj, mask = pcv.object_composition(img=image, contours=roi_objects, hierarchy=hierarchy3)
+
+    # # pcv.plot_image(mask)
+
+    # shape_img = pcv.analyze_object(img=image, obj=obj, mask=mask, label="default")
+    # # pcv.plot_image(shape_img)
+    # boundary_img1 = pcv.analyze_bound_horizontal(img=image, obj=obj, mask=mask,
+    #                                                line_position=1680, label="default")
 
 
-    # pcv.plot_image(labelo)
+
+    roi_start_x = 0
+    roi_start_y = 0
+    roi_w = image.shape[0]
+    roi_h = image.shape[1]
+    roi_line_w = 5
+
+    roi = pcv.roi.rectangle(
+        img=mask_applied,
+        x=roi_start_x,
+        y=roi_start_y,
+        w=roi_w,
+        h=roi_h
+    )
+
+    kept_mask = pcv.roi.filter(mask=blured_mask, roi=roi, roi_type='partial')
+
+    roi_image = image.copy()
+    roi_image[kept_mask != 0] = (0, 255, 0)
+    for x in range(0, image.shape[0]):
+        for y in range(0, image.shape[1]):
+            if is_roi_border(x, y, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
+                roi_image[x, y] = (255, 0, 0)
 
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
 
-    # pcv.plot_image(analysis_image)
-
-    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
+    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=blured_mask,label="default")
 
     _, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
 
     images_to_plot = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
-        "Gaussian blur": cv2.cvtColor(gaussian_bluri, cv2.COLOR_BGR2RGB),
-        "Mask": cv2.cvtColor(masked2, cv2.COLOR_BGR2RGB),
-        "ROI Objects": labelo,
+        "Gaussian blur": cv2.cvtColor(blured_mask, cv2.COLOR_BGR2RGB),
+        "Mask": cv2.cvtColor(mask_applied, cv2.COLOR_BGR2RGB),
+        "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
         "Pseudolandmarks": cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     }
@@ -275,7 +359,7 @@ def display_transformations(image_path, dest, options):
         axe.set(xticks=[], yticks=[])
         axe.label_outer()
 
-    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=b_fill, label='default')
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=blured_mask, label='default')
 
     for i in range(len(top_x)):
         plt.scatter(top_x[i][0][0], top_x[i][0][1], c='blue', s=10)
@@ -286,8 +370,7 @@ def display_transformations(image_path, dest, options):
 
     plt.show()
 
-    plot_histogram()
-
+    plot_histogram(image, kept_mask)
 
 
 
