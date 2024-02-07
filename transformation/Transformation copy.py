@@ -97,6 +97,11 @@ def total_luminosity(image):
     return tot
 
 
+def roughlyinferior(a, b):
+    if a  < b + 10 / 100 * b:
+        return True
+    return False
+
 def determine_threshold(b):
     b_thresh = pcv.threshold.binary(
         gray_img=b,
@@ -106,20 +111,22 @@ def determine_threshold(b):
     past_lum = total_luminosity(b_thresh)
     max_diff = 0
     iter = 0
-    for loop in range(50, 250, 2):
+    for loop in range(50, 250, 5):
         b_thresh = pcv.threshold.binary(
             gray_img=b, threshold=loop, object_type='light'
         )
-        # pcv.plot_image(b_thresh)
+        #pcv.plot_image(b_thresh)
         cur_lum = total_luminosity(b_thresh)
         diff = past_lum - cur_lum
 
         if max_diff < diff:
             max_diff = diff
-        # print("iter", loop, "lum", cur_lum, "delta", diff)
+        print("iter", loop, "lum", cur_lum, "delta", diff)
         if (max_diff != diff):
             iter = loop
-            break
+            #print("this one")
+            return iter
+
         past_lum = cur_lum
     max_diff = diff
 
@@ -235,6 +242,14 @@ def plot_histogram(image, kept_mask):
     plt.show()
 
 
+def gaussian_blurf(img, sat):
+    s = pcv.rgb2gray_hsv(rgb_img=img, channel='s')
+    s_thresh = pcv.threshold.binary(gray_img=s, threshold=sat, object_type='light')
+    gaussian_bluri = pcv.gaussian_blur(img=s_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
+    return gaussian_bluri
+
+
+
 def display_transformations(image_path, dest, options, is_launch_on_dir=False):
 
     # pcv.params.debug = "plot"
@@ -245,38 +260,114 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
     image, _, _ = pcv.readimage(image_path, mode='rgb')
     # pcv.plot_image(image)
 
-    # Convert the image to grayscale based on one of the color channels
-    l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
-    b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
-    # pcv.plot_image(l)
-    # pcv.plot_image(b)
 
-    # With the grayscale image, we can apply a threshold to create a binary image
-    # -> Get the best threshold value for the 'b' channel
-    # Apply the threshold to the grayscale image
-    value_threshold = determine_threshold(b)
-    b_thresh = pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
-    l_thresh = pcv.threshold.binary(gray_img=l, threshold=91, object_type='light')
+    # Test create a mask
+
+    # # Convert the image to grayscale based on one of the color channels
+    # l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
+    # b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
+    # # pcv.plot_image(l)
+    # # pcv.plot_image(b)
+
+    # # With the grayscale image, we can apply a threshold to create a binary image
+    # # -> Get the best threshold value for the 'b' channel
+    # # Apply the threshold to the grayscale image
+    # value_threshold = determine_threshold(b)
+    # b_thresh = pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
+    # l_thresh = pcv.threshold.binary(gray_img=l, threshold=91, object_type='light')
+    # # pcv.plot_image(b_thresh)
+    # # pcv.plot_image(l_thresh)
+    # # exit()
+
+    # # Fusion of the 2 binary images in a mask
+    # bl_mask = pcv.logical_and(bin_img1=b_thresh, bin_img2=l_thresh)
+    # # pcv.plot_image(bl_mask)
+
+    # # Remve small objects from the mask that are not part of the plant
+    # mask = pcv.fill(bin_img=bl_mask, size=100)
+    # # pcv.plot_image(mask)
+
+    # # Blur the mask to reduce the noise in the mask
+    # blured_mask = pcv.gaussian_blur(img=mask, ksize=(3, 3))
+    # # pcv.plot_image(blured_mask)
+
+    # # Apply the mask to the image to get the masked image
+    # mask_applied = pcv.apply_mask(img=image, mask=blured_mask, mask_color='white')
+    # # pcv.plot_image(mask_applied)
+    # # exit()
+    from rembg import remove
+
+    image_with_bg = image.copy()
+    image_without_bg = remove(image_with_bg)
+
+    # pcv.plot_image(image_with_bg)
+    # pcv.plot_image(image_without_bg)
+
+
+
+
+
+
+
+    # pcv.plot_image(image_with_bg)
+    # s = pcv.rgb2gray_hsv(rgb_img = wimage_without_bg, channel='s')
+    b = pcv.rgb2gray_lab(rgb_img = image_without_bg, channel='l')
+    b_thresh = pcv.threshold.binary(gray_img=b, threshold=35, object_type='light')
+    # for thres in range(0, 255, 10):
+    #     b_thresh = pcv.threshold.binary(gray_img=b, threshold=thres, object_type='light')
+    #     print("b_thresh", thres)
+    #     pcv.plot_image(b_thresh)
+
+    # print("b_thresh")
     # pcv.plot_image(b_thresh)
-    # pcv.plot_image(l_thresh)
-    # exit()
+    filled = pcv.fill(bin_img=b_thresh, size=200)
+    # print("filled")
+    # pcv.plot_image(filled)
+    gaussian_bluri = pcv.gaussian_blur(img=filled, ksize=(3, 3))
+    # print("gaussian blur")
+    # pcv.plot_image(gaussian_bluri)
+    masked = pcv.apply_mask(img=image_with_bg, mask=gaussian_bluri, mask_color='black')
 
-    # Fusion of the 2 binary images in a mask
-    bl_mask = pcv.logical_and(bin_img1=b_thresh, bin_img2=l_thresh)
-    # pcv.plot_image(bl_mask)
 
-    # Remve small objects from the mask that are not part of the plant
-    mask = pcv.fill(bin_img=bl_mask, size=100)
-    # pcv.plot_image(mask)
 
-    # Blur the mask to reduce the noise in the mask
-    blured_mask = pcv.gaussian_blur(img=mask, ksize=(3, 3))
-    # pcv.plot_image(blured_mask)
 
-    # Apply the mask to the image to get the masked image
-    mask_applied = pcv.apply_mask(img=image, mask=blured_mask, mask_color='white')
-    # pcv.plot_image(mask_applied)
-    # exit()
+    # pcv.plot_image(b_thresh)
+    # pcv.plot_image(gaussian_bluri)
+    # pcv.plot_image(filled)
+    # pcv.plot_image(masked)
+
+
+    # pcv.plot_image(gaussian_blurf(s_thresh, 80))
+
+    # l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
+    # #pcv.plot_image(l)
+    # l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
+    # #pcv.plot_image(l_thresh)
+
+    # b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
+    # #pcv.plot_image(b)
+    # value_threshold = determine_threshold(b)
+    # b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
+    # #print("Value treshold:", value_threshold)
+    # #pcv.plot_image(b_thresh)
+
+    # bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
+
+    # masked = pcv.apply_mask(img=image, mask=bminusl_thresh, mask_color='white')
+    # gaussian_bluri = gaussian_blurf(masked, 80)
+
+
+    # pcv.plot_image(gaussian_bluri)
+    # print("gaussian blur")
+
+    # b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
+
+    # masked2= pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
+    # pcv.plot_image(masked2)
+
+
+
+
 
     # bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
 
@@ -321,14 +412,14 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
     roi_line_w = 5
 
     roi = pcv.roi.rectangle(
-        img=mask_applied,
+        img=masked,
         x=roi_start_x,
         y=roi_start_y,
         w=roi_w,
         h=roi_h
     )
 
-    kept_mask = pcv.roi.filter(mask=blured_mask, roi=roi, roi_type='partial')
+    kept_mask = pcv.roi.filter(mask=filled, roi=roi, roi_type='partial')
 
     roi_image = image.copy()
     roi_image[kept_mask != 0] = (0, 255, 0)
@@ -339,7 +430,7 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
 
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
 
-    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=blured_mask,label="default")
+    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
 
     fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
 
@@ -347,8 +438,8 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
 
     images_to_plot = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
-        "Gaussian blur": cv2.cvtColor(blured_mask, cv2.COLOR_BGR2RGB),
-        "Mask": cv2.cvtColor(mask_applied, cv2.COLOR_BGR2RGB),
+        "Gaussian blur": cv2.cvtColor(gaussian_bluri, cv2.COLOR_BGR2RGB),
+        "Mask": cv2.cvtColor(masked, cv2.COLOR_BGR2RGB),
         "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
         "Pseudolandmarks": cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -360,7 +451,7 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
         axe.set(xticks=[], yticks=[])
         axe.label_outer()
 
-    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=blured_mask, label='default')
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=filled, label='default')
 
     for i in range(len(top_x)):
         if len(top_x[i]) >= 1 and len(top_x[i][0]) >= 2:
@@ -373,9 +464,10 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
             plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='orange', s=10)
 
     if is_launch_on_dir:
-        plt.show(block=False)
-        plt.pause(.5)
-        plt.close()
+        plt.show()
+        # plt.show(block=False)
+        # plt.pause(.5)
+        # plt.close()
     else:
         plt.show()
         plot_histogram(image, kept_mask)
