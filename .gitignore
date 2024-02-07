@@ -2,6 +2,7 @@ images/
 augmented_directory/
 en.subject.pdf
 *.JPG
+*.png
 **/__pycache__/
 **/.DS_Store
 

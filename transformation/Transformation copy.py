@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib import image as mplimg
 import cv2
+import time
 
 
 def parse_argument() -> str:
@@ -234,10 +235,10 @@ def plot_histogram(image, kept_mask):
     plt.show()
 
 
-def display_transformations(image_path, dest, options):
+def display_transformations(image_path, dest, options, is_launch_on_dir=False):
 
-    pcv.params.debug = "plot"
-    pcv.params.debug = "print"
+    # pcv.params.debug = "plot"
+    # pcv.params.debug = "print"
 
     # Open the image with plantcv and matplotlib
     # The color of the pcv image is changed :/
@@ -313,8 +314,6 @@ def display_transformations(image_path, dest, options):
     # boundary_img1 = pcv.analyze_bound_horizontal(img=image, obj=obj, mask=mask,
     #                                                line_position=1680, label="default")
 
-
-
     roi_start_x = 0
     roi_start_y = 0
     roi_w = image.shape[0]
@@ -342,7 +341,9 @@ def display_transformations(image_path, dest, options):
 
     pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=blured_mask,label="default")
 
-    _, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
+    fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
+
+    fig.suptitle(f"Transformation of {image_path}")
 
     images_to_plot = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
@@ -362,16 +363,43 @@ def display_transformations(image_path, dest, options):
     top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=blured_mask, label='default')
 
     for i in range(len(top_x)):
-        plt.scatter(top_x[i][0][0], top_x[i][0][1], c='blue', s=10)
+        if len(top_x[i]) >= 1 and len(top_x[i][0]) >= 2:
+            plt.scatter(top_x[i][0][0], top_x[i][0][1], c='blue', s=10)
     for i in range(len(bottom_x)):
-        plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='magenta', s=10)
+        if len(bottom_x[i]) >= 1 and len(bottom_x[i][0]) >= 2:
+            plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='magenta', s=10)
     for i in range(len(center_v_x)):
-        plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='orange', s=10)
+        if len(center_v_x[i]) >= 1 and len(center_v_x[i][0]) >= 2:
+            plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='orange', s=10)
 
-    plt.show()
+    if is_launch_on_dir:
+        plt.show(block=False)
+        plt.pause(.5)
+        plt.close()
+    else:
+        plt.show()
+        plot_histogram(image, kept_mask)
 
-    plot_histogram(image, kept_mask)
 
+def get_image_list(path: str) -> list:
+
+    """
+    Return the llist of files in the directory associated with 'path'
+    It walks in the subdirectories
+    """
+
+    image_list = []
+    for root, _, files in os.walk(path):
+        for file in files:
+            full_path = os.path.join(root, file)
+            image_list.append(full_path)
+    return image_list
+
+
+def transform_directory(path, dest, options):
+    images_list: list = get_image_list(path)
+    for image in images_list:
+        display_transformations(image, dest, options, is_launch_on_dir=True)
 
 
 def main():
@@ -381,17 +409,17 @@ def main():
     if os.path.isfile(path):
         display_transformations(path, dest, options)
     elif os.path.isdir(path):
-        # transform_directory(path, dest, options)
-        pass
+        transform_directory(path, dest, options)
     else:
         raise Exception("The path is not a file or a directory")
 
 
 if __name__ == "__main__":
+    # main()
     try:
         main()
     except KeyboardInterrupt:
-        print()
+        print("\nSIGTERM")
         exit()
     except Exception as error:
         print(error)

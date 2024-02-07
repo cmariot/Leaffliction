@@ -1,8 +1,0 @@
-Neural network vs. Transformers :
-
-Today, convolutional neural networks (CNN) mark the current state of the art in AI vision.
-Recent research has shown promising results for the use of Vision Transformers (ViT) for computer vision tasks.
-
-https://viso.ai/computer-vision/image-classification/
-
-CNN (Convolutional Neural Networks) or ViT (Vision Transformers) ?
