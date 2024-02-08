@@ -4,9 +4,10 @@ import argparse
 from plantcv import plantcv as pcv
 import os
 import matplotlib.pyplot as plt
-from matplotlib import image as mplimg
 import cv2
-import time
+from rembg import remove
+from tqdm import tqdm
+import numpy as np
 
 
 def parse_argument() -> str:
@@ -34,58 +35,72 @@ def parse_argument() -> str:
     parser.add_argument(
         '-dst',
         type=str,
-        default='.',
+        default='../transformed_directory',
         help='Destination of the transformed image',
     )
 
     # Blur
     parser.add_argument(
-        '-blur',
-        type=bool,
-        default=True,
+        '-blur', '-b',
+        default=False,
+        action='store_true',
         help='Do not display/save the blur the image',
     )
 
     # Mask
     parser.add_argument(
-        '-mask',
-        type=bool,
-        default=True,
+        '-mask', '-m',
+        default=False,
+        action='store_true',
         help='Do not display/save the mask of the transformed image',
     )
 
     # ROI
     parser.add_argument(
-        '-roi',
-        type=bool,
-        default=True,
+        '-roi', '-r',
+        default=False,
+        action='store_true',
         help='Do not display/save the ROI of the transformed image',
     )
 
     # Object
     parser.add_argument(
-        '-obj',
-        type=bool,
-        default=True,
+        '-obj', '-o',
+        default=False,
+        action='store_true',
         help='Do not display/save the object of the transformed image',
     )
 
     # Pseudolandmark
     parser.add_argument(
-        '-pseudo',
-        type=bool,
-        default=True,
+        '-pseudo', '-p',
+        default=False,
+        action='store_true',
         help='Do not display/save the pseudolandmark of the transformed image',
     )
 
     args = parser.parse_args()
 
-    options = [args.blur, args.mask, args.roi, args.obj, args.pseudo]
+    options = np.array([
+        args.blur,
+        args.mask,
+        args.roi,
+        args.obj,
+        args.pseudo
+    ])
+
+    image_to_plot = np.array([
+        "Gaussian blur",
+        "Mask",
+        "ROI Objects",
+        "Analyze object",
+        "Pseudolandmarks"
+    ])
 
     return (
         args.path,
         args.dst,
-        options
+        image_to_plot[options] if options.any() else image_to_plot
     )
 
 
@@ -195,6 +210,7 @@ def is_roi_border(x, y, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
 
     return False
 
+
 def plot_histogram(image, kept_mask):
 
     def plot_stat_hist(label, sc=1):
@@ -208,8 +224,9 @@ def plot_histogram(image, kept_mask):
         plt.plot(x, y, label=label)
         return
 
+
     labels, obj = pcv.create_labels(mask=kept_mask)
-    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=labels,label="default")
+    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=labels, label="default")
 
     plt.subplots(figsize=(16, 9))
 
@@ -250,7 +267,7 @@ def gaussian_blurf(img, sat):
 
 
 
-def display_transformations(image_path, dest, options, is_launch_on_dir=False):
+def display_transformations(image_path, dest, options, is_launch_on_dir=False, dir_name=""):
 
     # pcv.params.debug = "plot"
     # pcv.params.debug = "print"
@@ -258,152 +275,19 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
     # Open the image with plantcv and matplotlib
     # The color of the pcv image is changed :/
     image, _, _ = pcv.readimage(image_path, mode='rgb')
-    # pcv.plot_image(image)
 
-
-    # Test create a mask
-
-    # # Convert the image to grayscale based on one of the color channels
-    # l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
-    # b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
-    # # pcv.plot_image(l)
-    # # pcv.plot_image(b)
-
-    # # With the grayscale image, we can apply a threshold to create a binary image
-    # # -> Get the best threshold value for the 'b' channel
-    # # Apply the threshold to the grayscale image
-    # value_threshold = determine_threshold(b)
-    # b_thresh = pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
-    # l_thresh = pcv.threshold.binary(gray_img=l, threshold=91, object_type='light')
-    # # pcv.plot_image(b_thresh)
-    # # pcv.plot_image(l_thresh)
-    # # exit()
-
-    # # Fusion of the 2 binary images in a mask
-    # bl_mask = pcv.logical_and(bin_img1=b_thresh, bin_img2=l_thresh)
-    # # pcv.plot_image(bl_mask)
-
-    # # Remve small objects from the mask that are not part of the plant
-    # mask = pcv.fill(bin_img=bl_mask, size=100)
-    # # pcv.plot_image(mask)
-
-    # # Blur the mask to reduce the noise in the mask
-    # blured_mask = pcv.gaussian_blur(img=mask, ksize=(3, 3))
-    # # pcv.plot_image(blured_mask)
-
-    # # Apply the mask to the image to get the masked image
-    # mask_applied = pcv.apply_mask(img=image, mask=blured_mask, mask_color='white')
-    # # pcv.plot_image(mask_applied)
-    # # exit()
-    from rembg import remove
 
     image_with_bg = image.copy()
     image_without_bg = remove(image_with_bg)
 
-    # pcv.plot_image(image_with_bg)
-    # pcv.plot_image(image_without_bg)
-
-
-
-
-
-
-
-    # pcv.plot_image(image_with_bg)
-    # s = pcv.rgb2gray_hsv(rgb_img = wimage_without_bg, channel='s')
     b = pcv.rgb2gray_lab(rgb_img = image_without_bg, channel='l')
     b_thresh = pcv.threshold.binary(gray_img=b, threshold=35, object_type='light')
-    # for thres in range(0, 255, 10):
-    #     b_thresh = pcv.threshold.binary(gray_img=b, threshold=thres, object_type='light')
-    #     print("b_thresh", thres)
-    #     pcv.plot_image(b_thresh)
 
-    # print("b_thresh")
-    # pcv.plot_image(b_thresh)
     filled = pcv.fill(bin_img=b_thresh, size=200)
-    # print("filled")
-    # pcv.plot_image(filled)
+
     gaussian_bluri = pcv.gaussian_blur(img=filled, ksize=(3, 3))
-    # print("gaussian blur")
-    # pcv.plot_image(gaussian_bluri)
+
     masked = pcv.apply_mask(img=image_with_bg, mask=gaussian_bluri, mask_color='black')
-
-
-
-
-    # pcv.plot_image(b_thresh)
-    # pcv.plot_image(gaussian_bluri)
-    # pcv.plot_image(filled)
-    # pcv.plot_image(masked)
-
-
-    # pcv.plot_image(gaussian_blurf(s_thresh, 80))
-
-    # l = pcv.rgb2gray_lab(rgb_img=image, channel='l')
-    # #pcv.plot_image(l)
-    # l_thresh = pcv.threshold.binary(gray_img=l, threshold=30, object_type='light')
-    # #pcv.plot_image(l_thresh)
-
-    # b = pcv.rgb2gray_lab(rgb_img=image, channel='b')
-    # #pcv.plot_image(b)
-    # value_threshold = determine_threshold(b)
-    # b_thresh=pcv.threshold.binary(gray_img=b, threshold=value_threshold,object_type='light')
-    # #print("Value treshold:", value_threshold)
-    # #pcv.plot_image(b_thresh)
-
-    # bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
-
-    # masked = pcv.apply_mask(img=image, mask=bminusl_thresh, mask_color='white')
-    # gaussian_bluri = gaussian_blurf(masked, 80)
-
-
-    # pcv.plot_image(gaussian_bluri)
-    # print("gaussian blur")
-
-    # b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
-
-    # masked2= pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
-    # pcv.plot_image(masked2)
-
-
-
-
-
-    # bminusl_thresh = pcv.apply_mask(img=b_thresh, mask=l_thresh, mask_color='black')
-
-    # # The blur is used to reduce the noise in the mask
-    # gaussian_bluri = pcv.gaussian_blur(img=bminusl_thresh, ksize=(5, 5), sigma_x=0, sigma_y=None)
-
-    # # Apply the mask to the image to get the masked image
-    # masked = pcv.apply_mask(img=image, mask=gaussian_bluri, mask_color='white')
-    # b_fill = pcv.fill(bin_img=bminusl_thresh, size=200)
-    # masked2 = pcv.apply_mask(img=masked, mask=b_fill, mask_color='white')
-
-    # pcv.plot_image(bminusl_thresh)
-    # pcv.plot_image(b_fill)
-    # pcv.plot_image(masked2)
-
-    # pcv.plot_image(masked2)
-
-
-    # id_objects, obj_hierarchy = pcv.find_objects(masked2, b_fill)
-
-    # roi, roi_hierarchy= pcv.roi.rectangle(img=masked2, x=0, y=0, w=image.shape[0], h=image.shape[1])
-
-    # roi_objects, hierarchy3, kept_mask, obj_area = pcv.roi_objects(img=image, roi_contour=roi,
-    #                                                                 roi_hierarchy=roi_hierarchy,
-    #                                                                 object_contour=id_objects,
-    #                                                                 obj_hierarchy=obj_hierarchy,
-    #                                                                 roi_type='partial')
-
-    # obj, mask = pcv.object_composition(img=image, contours=roi_objects, hierarchy=hierarchy3)
-
-    # # pcv.plot_image(mask)
-
-    # shape_img = pcv.analyze_object(img=image, obj=obj, mask=mask, label="default")
-    # # pcv.plot_image(shape_img)
-    # boundary_img1 = pcv.analyze_bound_horizontal(img=image, obj=obj, mask=mask,
-    #                                                line_position=1680, label="default")
 
     roi_start_x = 0
     roi_start_y = 0
@@ -430,12 +314,6 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
 
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
 
-    pcv.analyze.color(rgb_img=image, colorspaces="all", labeled_mask=kept_mask,label="default")
-
-    fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
-
-    fig.suptitle(f"Transformation of {image_path}")
-
     images_to_plot = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
         "Gaussian blur": cv2.cvtColor(gaussian_bluri, cv2.COLOR_BGR2RGB),
@@ -444,6 +322,10 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
         "Pseudolandmarks": cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     }
+
+    fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
+
+    fig.suptitle(f"Transformation of {image_path}")
 
     for (label, img), axe in zip(images_to_plot.items(), ax.flat):
         axe.imshow(img)
@@ -464,13 +346,36 @@ def display_transformations(image_path, dest, options, is_launch_on_dir=False):
             plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='orange', s=10)
 
     if is_launch_on_dir:
-        plt.show()
-        # plt.show(block=False)
-        # plt.pause(.5)
-        # plt.close()
+
+        new_image_path = image_path.replace(dir_name, dest, 1)
+
+        dirs = new_image_path.split("/")
+
+        for i in range(len(dirs) - 1):
+            dir_to_create = "/".join(dirs[:i + 1])
+            if not os.path.isdir(dir_to_create):
+                os.mkdir(dir_to_create)
+
+        point_pos = image_path.rfind(".")
+
+        if point_pos == -1:
+            filename_without_ext = image_path.replace(dir_name, dest, 1)
+            extension = ""
+        else:
+            filename_without_ext = image_path[:point_pos].replace(dir_name, dest, 1)
+            extension = image_path[point_pos:]
+
+        for label, img in images_to_plot.items():
+            if label in options:
+                image_name = f"{filename_without_ext}_{label}{extension}"
+                cv2.imwrite(image_name, cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                print(f"Image saved at {image_name}")
+
     else:
         plt.show()
         plot_histogram(image, kept_mask)
+
+    plt.close()
 
 
 def get_image_list(path: str) -> list:
@@ -490,8 +395,8 @@ def get_image_list(path: str) -> list:
 
 def transform_directory(path, dest, options):
     images_list: list = get_image_list(path)
-    for image in images_list:
-        display_transformations(image, dest, options, is_launch_on_dir=True)
+    for image in tqdm(images_list):
+        display_transformations(image, dest, options, is_launch_on_dir=True, dir_name=path)
 
 
 def main():
@@ -507,7 +412,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
     try:
         main()
     except KeyboardInterrupt:
