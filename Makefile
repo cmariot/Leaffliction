@@ -24,4 +24,15 @@ predict:
 clean:
 	rm -rf */*/__pycache__
 
-.PHONY: all analysis augmentation transformation classification train predict clean
+
+# Dependencies
+
+requirements:
+	pip freeze > requirements.txt
+
+install_requirements:
+	pip install -r requirements.txt
+
+
+
+.PHONY: all analysis augmentation transformation classification train predict clean requirements install_requirements
