@@ -1,14 +1,9 @@
 import argparse
-import sys
-import os
-sys.path.insert(1, '/media/cmariot/VM/Leaffliction/augmentation')
-sys.path.insert(1, '/media/cmariot/VM/Leaffliction//transformation')
 from Balancing import augmentation_on_directory
 from Transformation import transform_directory
 from Fit import train
 import numpy as np
-
-# Args
+import os
 
 
 def parse_arguments():
@@ -34,12 +29,26 @@ def parse_arguments():
         help="Don't apply transformation to the dataset"
     )
 
+    parser.add_argument(
+        "--rm_augmentation", "-rma",
+        action="store_true",
+        help="Remove the augmented dataset"
+    )
+
+    parser.add_argument(
+        "--rm_transformation", "-rmt",
+        action="store_true",
+        help="Remove the transformed dataset"
+    )
+
     args = parser.parse_args()
 
     return (
         args.dir,
         not args.augmentation,
-        not args.transformation
+        not args.transformation,
+        not args.rm_augmentation,
+        not args.rm_transformation
     )
 
 
@@ -50,9 +59,32 @@ def parse_arguments():
 # Evaluation
 # Save model
 
+
+def rm_dir(dir_path: str):
+    """
+    Remove a directory and all its content
+    """
+
+    if not os.path.exists(dir_path):
+        return
+
+    for root, dirs, files in os.walk(dir_path, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
+    os.rmdir(dir_path)
+
+
 def main():
 
-    dir, augmentation, transformation = parse_arguments()
+    (
+        dir,
+        augmentation,
+        transformation,
+        rm_augmentation,
+        rm_transformation
+    ) = parse_arguments()
 
     train_dir = dir
     aug_dir = "minifitaug"
@@ -68,13 +100,13 @@ def main():
         transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
         train_dir = trans_dir
 
-    # if augmentation and os.path.exists(aug_dir):
-    #     os.rmdir(aug_dir)
-
-    # Test sur le minifitrans
-    # train_dir = "minifitrans"
-
     train(train_dir, "model", 15)
+
+    # if rm_augmentation:
+    #     rm_dir(aug_dir)
+
+    # if rm_transformation:
+    #     rm_dir(trans_dir)
 
 
 if __name__ == "__main__":

@@ -353,12 +353,12 @@ def transform_image(
     )
 
     images = {
-        "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
-        "Gaussian blur": cv2.cvtColor(gaussian_bluri, cv2.COLOR_BGR2RGB),
-        "Mask": cv2.cvtColor(masked, cv2.COLOR_BGR2RGB),
-        "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
-        "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
-        "Pseudolandmarks": cv2.cvtColor(pseudolandmarks, cv2.COLOR_BGR2RGB)
+        "Original": image,
+        "Gaussian blur": gaussian_bluri,
+        "Mask": masked,
+        "ROI Objects": roi_image,
+        "Analyze object": analysis_image,
+        "Pseudolandmarks": pseudolandmarks
     }
 
     # If the argument of the program is a file, display the transformation

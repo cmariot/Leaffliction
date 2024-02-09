@@ -93,6 +93,7 @@ def main():
     old_directory = parse_argument()
     augmentation_on_directory(old_directory, "augmented_directory", True)
 
+
 def augmentation_on_directory(old_directory, new_directory, rac):
     if not os.path.isdir(old_directory):
         raise Exception("Invalid directory")
@@ -103,7 +104,7 @@ def augmentation_on_directory(old_directory, new_directory, rac):
         old_directory_name = old_directory[slash_index + 1:]
     print(new_directory)
     if rac:
-        new_directory = "../"+ new_directory + "/" + old_directory_name
+        new_directory = "../" + new_directory + "/" + old_directory_name
 
     augmentedFunctions = {
         "Contrast": img_contrast,
@@ -116,7 +117,6 @@ def augmentation_on_directory(old_directory, new_directory, rac):
     augmentations_labels = list(augmentedFunctions.keys())
     augmentation_functions = list(augmentedFunctions.values())
 
-    #exit(1)
     to_balance = get_max_files(old_directory)
     print("new dir", new_directory)
     if not os.path.isdir("../" + new_directory):

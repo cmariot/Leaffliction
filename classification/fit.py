@@ -28,8 +28,7 @@ def train(directory, model_path, epochs):
         batch_size=50
     )
 
-
-    train_class_names = train_ds.class_names
+    # train_class_names = train_ds.class_names
     val_class_names = val_ds.class_names
 
     # print(class_names)
@@ -122,13 +121,22 @@ def train(directory, model_path, epochs):
             else:
                 title = "Grape"
 
-            if (title == "Grape" and labels[i] == 1 ) or (title == "Apple" and labels[i] == 0):
+            if (
+                (title == "Grape" and labels[i] == 1) or
+                (title == "Apple" and labels[i] == 0)
+            ):
+                # Correct prediction
                 color = "red"
                 correct += 1
             else:
+                # Incorrect prediction
                 color = "black"
 
-            plt.title(val_class_names[int(labels[i])] + " prediction : " + title, color=color)
+            plt.title(
+                val_class_names[int(labels[i])] +
+                " prediction : " +
+                title, color=color
+            )
             plt.imshow(image[i].numpy().astype("uint8"))
             plt.show()
 
@@ -137,21 +145,7 @@ def train(directory, model_path, epochs):
     print("Total images : ", total_images)
     print("Correct predictions : ", correct)
     print("Accuracy : ", correct / total_images)
-
-    # for image, labels in val_ds.take(1):
-    #     for i in range(33):
-    #         if predictions[i][0] >= predictions[i][1]:
-    #             title = "Apple"
-    #         else:
-    #             title = "Grape"
-    #         if (title == "Grape" and labels[i] == 1 ) or (title == "Apple" and labels[i] == 0):
-    #             color = "red"
-    #         else:
-    #             color = "black"
-
-    #         plt.title(class_names[int(labels[i])] + " prediction : " + title, color=color)
-    #         plt.imshow(image[i].numpy().astype("uint8"))
-    #         plt.show()
+    exit()
 
     image = asarray(Image.open(sys.argv[1]))
     topredic = np.expand_dims(image, axis=0)
