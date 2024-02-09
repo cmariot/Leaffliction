@@ -1,5 +1,11 @@
 import argparse
-
+import sys
+import os
+sys.path.insert(1, '/mnt/nfs/homes/xsaulnie/leaf3/augmentation')
+sys.path.insert(1, '/mnt/nfs/homes/xsaulnie/leaf3/transformation')
+from Balancing import augmentation_on_directory
+from Transformation import transform_directory
+import numpy as np
 
 # Args
 
@@ -14,7 +20,7 @@ def parse_arguments():
         type=str,
     )
 
-    return parser.parse_args()
+    return parser.parse_args().dir
 
 
 # Augmentation
@@ -26,7 +32,11 @@ def parse_arguments():
 
 def main():
     dir = parse_arguments()
-    print(dir)
+    print("augmentation on : ", dir)
+    augmentation_on_directory(dir, "minifitaug", False)
+    transform_directory("minifitaug", "minifitrans", np.array(["Mask"]))
+
+
 
 
 if __name__ == "__main__":

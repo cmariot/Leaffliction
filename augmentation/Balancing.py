@@ -90,8 +90,10 @@ class imageName():
 
 
 def main():
-
     old_directory = parse_argument()
+    augmentation_on_directory(old_directory, "augmented_directory", True)
+
+def augmentation_on_directory(old_directory, new_directory, rac):
     if not os.path.isdir(old_directory):
         raise Exception("Invalid directory")
     slash_index = old_directory.rfind("/")
@@ -99,7 +101,9 @@ def main():
         old_directory_name = old_directory
     else:
         old_directory_name = old_directory[slash_index + 1:]
-    new_directory = "../augmented_directory/" + old_directory_name
+    print(new_directory)
+    if rac:
+        new_directory = "../"+ new_directory + "/" + old_directory_name
 
     augmentedFunctions = {
         "Contrast": img_contrast,
@@ -112,10 +116,11 @@ def main():
     augmentations_labels = list(augmentedFunctions.keys())
     augmentation_functions = list(augmentedFunctions.values())
 
+    #exit(1)
     to_balance = get_max_files(old_directory)
-
-    if not os.path.isdir("../augmented_directory"):
-        os.mkdir("../augmented_directory")
+    print("new dir", new_directory)
+    if not os.path.isdir("../" + new_directory):
+        os.mkdir("../" + new_directory)
 
     if not os.path.isdir(new_directory):
         print("Creating directory " + new_directory)
