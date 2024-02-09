@@ -1,13 +1,15 @@
 import argparse
 import sys
 import os
-sys.path.insert(1, '/mnt/nfs/homes/xsaulnie/leaf3/augmentation')
-sys.path.insert(1, '/mnt/nfs/homes/xsaulnie/leaf3/transformation')
+sys.path.insert(1, '/media/cmariot/VM/Leaffliction/augmentation')
+sys.path.insert(1, '/media/cmariot/VM/Leaffliction//transformation')
 from Balancing import augmentation_on_directory
 from Transformation import transform_directory
+from Fit import train
 import numpy as np
 
 # Args
+
 
 def parse_arguments():
 
@@ -20,7 +22,25 @@ def parse_arguments():
         type=str,
     )
 
-    return parser.parse_args().dir
+    parser.add_argument(
+        "--augmentation", "-a",
+        action="store_true",
+        help="Don't apply augmentation to the dataset"
+    )
+
+    parser.add_argument(
+        "--transformation", "-t",
+        action="store_true",
+        help="Don't apply transformation to the dataset"
+    )
+
+    args = parser.parse_args()
+
+    return (
+        args.dir,
+        not args.augmentation,
+        not args.transformation
+    )
 
 
 # Augmentation
@@ -31,12 +51,30 @@ def parse_arguments():
 # Save model
 
 def main():
-    dir = parse_arguments()
-    print("augmentation on : ", dir)
-    augmentation_on_directory(dir, "minifitaug", False)
-    transform_directory("minifitaug", "minifitrans", np.array(["Mask"]))
 
+    dir, augmentation, transformation = parse_arguments()
 
+    train_dir = dir
+    aug_dir = "minifitaug"
+    trans_dir = "minifitrans"
+
+    if augmentation:
+        augmentation_on_directory(dir, aug_dir, False)
+        train_dir = aug_dir
+    else:
+        aug_dir = dir
+
+    if transformation:
+        transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
+        train_dir = trans_dir
+
+    # if augmentation and os.path.exists(aug_dir):
+    #     os.rmdir(aug_dir)
+
+    # Test sur le minifitrans
+    # train_dir = "minifitrans"
+
+    train(train_dir, "model", 15)
 
 
 if __name__ == "__main__":
