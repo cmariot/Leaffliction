@@ -3,8 +3,7 @@ from plantcv import plantcv as pcv
 import os
 import matplotlib.pyplot as plt
 import cv2
-from rembg import remove
-from tqdm import tqdm
+import rembg
 import numpy as np
 
 
@@ -19,8 +18,8 @@ def parse_argument() -> str:
         prog='Transformation.py',
         description="""
         If the path is a file, display the transformation of the image.
-        If the path is a directory, display the transformation of all the images
-        in the directory and save them in the 'dest' directory.
+        If the path is a directory, display the transformation of all the
+        images in the directory and save them in the 'dest' directory.
         """
     )
 
@@ -122,17 +121,17 @@ def is_roi_border(x, y, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
             roi_start_x <= x <= roi_start_x + roi_w and
             roi_start_y <= y <= roi_start_y + roi_line_w
         )
-            or
+        or
         (
             roi_start_x <= x <= roi_start_x + roi_w and
             roi_start_y + roi_h - roi_line_w <= y <= roi_start_y + roi_h
         )
-            or
+        or
         (
             roi_start_x <= x <= roi_start_x + roi_line_w and
             roi_start_y <= y <= roi_start_y + roi_h
         )
-            or
+        or
         (
             roi_start_x + roi_w - roi_line_w <= x <= roi_start_x + roi_w and
             roi_start_y <= y <= roi_start_y + roi_h
@@ -140,20 +139,43 @@ def is_roi_border(x, y, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
     )
 
 
-def create_roi_image(image, mask, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
+def create_roi_image(
+    image,
+    masked,
+    filled
+):
 
     """
     Create an image with the ROI rectangle and the mask
     """
 
+    # Create a region of interest (ROI) rectangle
+    roi_start_x = 0
+    roi_start_y = 0
+    roi_w = image.shape[0]
+    roi_h = image.shape[1]
+    roi_line_w = 5
+
+    roi = pcv.roi.rectangle(
+        img=masked,
+        x=roi_start_x,
+        y=roi_start_y,
+        w=roi_w,
+        h=roi_h
+    )
+
+    # Create a mask based on the ROI
+    kept_mask = pcv.roi.filter(mask=filled, roi=roi, roi_type='partial')
+
     roi_image = image.copy()
-    roi_image[mask != 0] = (0, 255, 0)
+    roi_image[kept_mask != 0] = (0, 255, 0)
     for x in range(0, image.shape[0]):
         for y in range(0, image.shape[1]):
             if is_roi_border(x, y, roi_start_x, roi_start_y,
                              roi_h, roi_w, roi_line_w):
                 roi_image[x, y] = (255, 0, 0)
-    return roi_image
+
+    return roi_image, kept_mask
 
 
 def plot_histogram(image, kept_mask):
@@ -163,26 +185,37 @@ def plot_histogram(image, kept_mask):
     """
 
     def plot_stat_hist(label, sc=1):
+
+        """
+        Retrieve the histogram x and y values and plot them
+        """
+
         y = pcv.outputs.observations['default_1'][label]['value']
-        x = [i * sc for i in  pcv.outputs.observations['default_1'][label]['label']]
+        x = [
+            i * sc
+            for i in pcv.outputs.observations['default_1'][label]['label']
+        ]
         if label == "hue_frequencies":
             x = x[:int(255 / 2)]
             y = y[:int(255 / 2)]
-        if label == "blue-yellow_frequencies" or label == "green-magenta_frequencies":
+        if (
+            label == "blue-yellow_frequencies" or
+            label == "green-magenta_frequencies"
+        ):
             x = [x + 128 for x in x]
         plt.plot(x, y, label=label)
         return
 
     dict_label = {
-        "blue_frequencies" : 1,
+        "blue_frequencies": 1,
         "green_frequencies": 1,
-        "green-magenta_frequencies" : 1 ,
-        "lightness_frequencies" : 2.55,
-        "red_frequencies" : 1,
-        "blue-yellow_frequencies" : 1,
-        "hue_frequencies" : 1,
-        "saturation_frequencies" : 2.55,
-        "value_frequencies" : 2.55
+        "green-magenta_frequencies": 1,
+        "lightness_frequencies": 2.55,
+        "red_frequencies": 1,
+        "blue-yellow_frequencies": 1,
+        "hue_frequencies": 1,
+        "saturation_frequencies": 2.55,
+        "value_frequencies": 2.55
     }
 
     labels, _ = pcv.create_labels(mask=kept_mask)
@@ -209,63 +242,94 @@ def plot_histogram(image, kept_mask):
         linestyle='--',
     )
     plt.show()
+    plt.close()
 
 
-def get_image_name(image_path, dest, label, dir_name):
+def is_in_circle(x, y, center_x, center_y, radius):
+    """
+    Return True if the pixel (x, y) is in the circle defined by center_x,
+    center_y and radius
+    """
 
-    print(f"image_path {image_path}")
-    print(f"dir_name {dir_name}")
-    print(f"dest {dest}")
-    print(f"label {label}")
+    if (x - center_x) ** 2 + (y - center_y) ** 2 <= radius ** 2:
+        return True
+    return False
 
-    new_image_path = image_path.replace(dir_name, dest + "/", 1)
 
-    print(f"new_image_path {new_image_path}")
+def draw_pseudolandmarks(image, pseudolandmarks, color, radius):
 
-    dirs = new_image_path.split("/")
+    """
+    Draw a circle in the image,
+    Replace the pixels of 'image' by the color by a circle centered on
+    """
 
-    for i in range(len(dirs) - 1):
-        dir_to_create = "/".join(dirs[:i + 1])
-        if not os.path.isdir(dir_to_create):
-            os.mkdir(dir_to_create)
+    for i in range(len(pseudolandmarks)):
+        if len(pseudolandmarks[i]) >= 1 and len(pseudolandmarks[i][0]) >= 2:
+            center_x = pseudolandmarks[i][0][1]
+            center_y = pseudolandmarks[i][0][0]
+            for x in range(image.shape[0]):
+                for y in range(image.shape[1]):
+                    if is_in_circle(x, y, center_x, center_y, radius):
+                        image[x, y] = color
+    return image
 
-    point_pos = image_path.rfind(".")
 
-    if point_pos == -1:
-        filename_without_ext = image_path.replace(dir_name, dest, 1)
-        extension = ""
-    else:
-        filename_without_ext = image_path[:point_pos].replace(dir_name, dest, 1)
-        extension = image_path[point_pos:]
-
-    image_name = new_image_path.replace(
-        filename_without_ext,
-        f"{filename_without_ext}_{label}{extension}",
-        1
+def create_pseudolandmarks_image(image, kept_mask):
+    """
+    Create a displayable image with the pseudolandmarks
+    """
+    pseudolandmarks = image.copy()
+    top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(
+        img=pseudolandmarks, mask=kept_mask, label='default'
     )
+    pseudolandmarks = draw_pseudolandmarks(
+        pseudolandmarks, top_x, (0, 0, 255), 5
+    )
+    pseudolandmarks = draw_pseudolandmarks(
+        pseudolandmarks, bottom_x, (255, 0, 255), 5
+    )
+    pseudolandmarks = draw_pseudolandmarks(
+        pseudolandmarks, center_v_x, (255, 0, 0), 5
+    )
+    return pseudolandmarks
 
-    exit()
 
-    return image_name
+def get_image_name(new_path, label):
+
+    """
+    Return the name of the image to save
+    """
+
+    point_index = new_path.rfind(".")
+    if point_index == -1:
+        return new_path + "_" + label
+    else:
+        return new_path[:point_index] + "_" + label + new_path[point_index:]
 
 
-
-def transform_image(image_path, dest, options, is_launch_on_dir=False, dir_name=""):
+def transform_image(
+    image_path,
+    options,
+    is_launch_on_dir=False,
+    new_path=""
+):
 
     # Open the image with plantcv
     image, _, _ = pcv.readimage(image_path, mode='rgb')
 
     # Remove the background of the image
-    image_without_bg = remove(image)
+    image_without_bg = rembg.remove(image)
 
     # Convert the image to grayscale
-    b = pcv.rgb2gray_lab(rgb_img = image_without_bg, channel='l')
+    l_grayscale = pcv.rgb2gray_lab(rgb_img=image_without_bg, channel='l')
 
     # Create a binary image with a threshold
-    b_thresh = pcv.threshold.binary(gray_img=b, threshold=35, object_type='light')
+    l_thresh = pcv.threshold.binary(
+        gray_img=l_grayscale, threshold=35, object_type='light'
+    )
 
     # Remove small objects from the binary image that are smaller than 200 pxls
-    filled = pcv.fill(bin_img=b_thresh, size=200)
+    filled = pcv.fill(bin_img=l_thresh, size=200)
 
     # Apply a gaussian blur to the image to remove the noise
     gaussian_bluri = pcv.gaussian_blur(img=filled, ksize=(3, 3))
@@ -273,92 +337,59 @@ def transform_image(image_path, dest, options, is_launch_on_dir=False, dir_name=
     # Apply a mask to the image
     masked = pcv.apply_mask(img=image, mask=gaussian_bluri, mask_color='black')
 
-    # Create a region of interest (ROI) rectangle
-    roi_start_x = 0
-    roi_start_y = 0
-    roi_w = image.shape[0]
-    roi_h = image.shape[1]
-    roi_line_w = 5
-    roi = pcv.roi.rectangle(
-        img=masked,
-        x=roi_start_x,
-        y=roi_start_y,
-        w=roi_w,
-        h=roi_h
-    )
-
-    # Create a mask based on the ROI
-    kept_mask = pcv.roi.filter(mask=filled, roi=roi, roi_type='partial')
-
     # Create a displayable image with the ROI rectangle and the mask
-    roi_image = create_roi_image(
-        image, kept_mask, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w
+    roi_image, kept_mask = create_roi_image(
+        image, masked, filled
     )
 
     # Analyze the object in the image
     analysis_image = pcv.analyze.size(img=image, labeled_mask=kept_mask)
 
-    images_to_plot = {
+    # Create a displayable image with the pseudolandmarks
+    pseudolandmarks = create_pseudolandmarks_image(
+        image, kept_mask
+    )
+
+    images = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
         "Gaussian blur": cv2.cvtColor(gaussian_bluri, cv2.COLOR_BGR2RGB),
         "Mask": cv2.cvtColor(masked, cv2.COLOR_BGR2RGB),
         "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
-        "Pseudolandmarks": cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        "Pseudolandmarks": cv2.cvtColor(pseudolandmarks, cv2.COLOR_BGR2RGB)
     }
 
     # If the argument of the program is a file, display the transformation
     if not is_launch_on_dir:
 
+        # Create the figure to plot
         fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
 
+        # Title of the plot
         fig.suptitle(f"Transformation of {image_path}")
 
-        for (label, img), axe in zip(images_to_plot.items(), ax.flat):
+        # Put the images on the plot
+        for (label, img), axe in zip(images.items(), ax.flat):
             axe.imshow(img)
             axe.set_title(label)
             axe.set(xticks=[], yticks=[])
             axe.label_outer()
 
-        top_x, bottom_x, center_v_x = pcv.homology.x_axis_pseudolandmarks(img=image, mask=filled, label='default')
-
-        for i in range(len(top_x)):
-            if len(top_x[i]) >= 1 and len(top_x[i][0]) >= 2:
-                plt.scatter(top_x[i][0][0], top_x[i][0][1], c='blue', s=10)
-        for i in range(len(bottom_x)):
-            if len(bottom_x[i]) >= 1 and len(bottom_x[i][0]) >= 2:
-                plt.scatter(bottom_x[i][0][0], bottom_x[i][0][1], c='magenta', s=10)
-        for i in range(len(center_v_x)):
-            if len(center_v_x[i]) >= 1 and len(center_v_x[i][0]) >= 2:
-                plt.scatter(center_v_x[i][0][0], center_v_x[i][0][1], c='orange', s=10)
-
         plt.show()
-        plot_histogram(image, kept_mask)
         plt.close()
 
-    # Else if the argument of the program is a directory, save the transformation
+        plot_histogram(image, kept_mask)
+
+    # Else if the argument of the program is a directory,
+    # save the transformations
     else:
 
-        for label, img in images_to_plot.items():
+        for label, img in images.items():
             if label in options:
-                image_name = get_image_name(image_path, dest, label, dir_name)
-                # cv2.imwrite(image_name, cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-                print(f"Image saved at {image_name}")
-
-
-def get_image_list(path: str) -> list:
-
-    """
-    Return the list of files in the directory associated with 'path'
-    It walks in the subdirectories
-    """
-
-    image_list = []
-    for root, _, files in os.walk(path):
-        for file in files:
-            full_path = os.path.join(root, file)
-            image_list.append(full_path)
-    return image_list
+                cv2.imwrite(
+                    get_image_name(new_path, label),
+                    cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                )
 
 
 def transform_directory(path, dest, options):
@@ -368,15 +399,34 @@ def transform_directory(path, dest, options):
     'dest' directory
     """
 
-    images_list: list = get_image_list(path)
-    for image in tqdm(images_list):
-        transform_image(
-            image,
-            dest,
-            options,
-            is_launch_on_dir=True,
-            dir_name=path
-        )
+    if not os.path.isdir(dest):
+
+        split_path = dest.split("/")
+
+        for i in range(1, len(split_path) + 1):
+            new_path = "/".join(split_path[:i])
+            print(f"Test to create {new_path}")
+            if not os.path.isdir(new_path):
+                print(f"Create directory {new_path}")
+                os.mkdir(new_path)
+
+    for root, dirs, files in os.walk(path):
+
+        new_root = root.replace(path, dest, 1)
+
+        for dir in dirs:
+            if not os.path.isdir(os.path.join(new_root, dir)):
+                os.mkdir(os.path.join(new_root, dir))
+
+        for file in files:
+            full_path = os.path.join(root, file)
+            new_path = os.path.join(new_root, file)
+            transform_image(
+                full_path,
+                options,
+                is_launch_on_dir=True,
+                new_path=new_path
+            )
 
 
 def main():
@@ -391,7 +441,7 @@ def main():
     path, dest, options = parse_argument()
 
     if os.path.isfile(path):
-        transform_image(path, dest, options)
+        transform_image(path, options)
     elif os.path.isdir(path):
         transform_directory(path, dest, options)
     else:
