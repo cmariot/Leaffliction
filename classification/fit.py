@@ -29,6 +29,7 @@ val_ds = ts.keras.utils.image_dataset_from_directory(
 )
 
 class_names = train_ds.class_names
+print(class_names)
 
 for images, labels in train_ds.take(1):
     for i in range(50):
@@ -62,7 +63,7 @@ model = ts.keras.Sequential([
   ts.keras.layers.Dense(num_classes, activation='softmax')
 ])
 
-epochs = 20
+epochs = 15
 
 model.compile(optimizer='adam', loss=ts.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
               metrics=['accuracy'])
@@ -93,17 +94,18 @@ plt.legend()
 plt.show()
 
 predictions = model.predict(val_ds, verbose=0)
+print(predictions)
 
 for image, labels in val_ds.take(1):
     for i in range(33):
         if predictions[i][0] >= predictions[i][1]:
-            title = "Grape"
-        else:
             title = "Apple"
-        if (title == "Grape3" and labels[i] == 0 ) or (title == "Apple" and labels[i] == 1):
-            color = "black"
         else:
+            title = "Grape"
+        if (title == "Grape" and labels[i] == 1 ) or (title == "Apple" and labels[i] == 0):
             color = "red"
+        else:
+            color = "black"
 
         plt.title(class_names[int(labels[i])] + " prediction : " + title, color=color)
         plt.imshow(image[i].numpy().astype("uint8"))
