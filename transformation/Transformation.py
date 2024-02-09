@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import cv2
 import rembg
 import numpy as np
+from tqdm import tqdm
 
 
 def parse_argument() -> str:
@@ -301,6 +302,7 @@ def get_image_name(new_path, label):
     """
 
     point_index = new_path.rfind(".")
+    label = label.replace(" ", "_")
     if point_index == -1:
         return new_path + "_" + label
     else:
@@ -418,7 +420,7 @@ def transform_directory(path, dest, options):
             if not os.path.isdir(os.path.join(new_root, dir)):
                 os.mkdir(os.path.join(new_root, dir))
 
-        for file in files:
+        for file in tqdm(files):
             full_path = os.path.join(root, file)
             new_path = os.path.join(new_root, file)
             transform_image(
