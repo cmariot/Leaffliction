@@ -119,8 +119,8 @@ def augmentation_on_directory(old_directory, new_directory, rac):
 
     to_balance = get_max_files(old_directory)
     print("new dir", new_directory)
-    if not os.path.isdir("../" + new_directory):
-        os.mkdir("../" + new_directory)
+    # if not os.path.isdir("../" + new_directory):
+    #     os.mkdir("../" + new_directory)
 
     if not os.path.isdir(new_directory):
         print("Creating directory " + new_directory)

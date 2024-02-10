@@ -1,4 +1,6 @@
 images/
+images_augmented/
+images_transformed/
 augmented_directory/
 en.subject.pdf
 *.JPG

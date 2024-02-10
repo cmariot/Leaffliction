@@ -70,8 +70,8 @@ def nextP(p, x, y):
     xf = int(x * 0.2)
     yf = int(y * 0.2)
     return [
-        (p[0] + random.randint(0, xf) % x),  # Les parentheses sont diferrement
-        (p[1] + random.randint(0, yf)) % y   # placees ? A verifier
+        (p[0] + random.randint(0, xf) % x),
+        (p[1] + random.randint(0, yf)) % y
     ]
 
 

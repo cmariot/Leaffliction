@@ -8,8 +8,6 @@ import sys
 
 def train(directory, model_path, epochs):
 
-    # dir -> train_ds, val_ds, test_ds
-
     train_ds = ts.keras.utils.image_dataset_from_directory(
         directory,
         validation_split=0.2,
@@ -101,6 +99,7 @@ def train(directory, model_path, epochs):
     plt.show()
 
     predictions = model.predict(val_ds, verbose=0)
+
     print(predictions)
 
     total_images = 0
@@ -145,6 +144,7 @@ def train(directory, model_path, epochs):
     print("Total images : ", total_images)
     print("Correct predictions : ", correct)
     print("Accuracy : ", correct / total_images)
+
     exit()
 
     image = asarray(Image.open(sys.argv[1]))
