@@ -50,9 +50,7 @@ def main():
     (
         dir,
         augmentation,
-        transformation,
-        rm_augmentation,
-        rm_transformation
+        transformation
     ) = parse_arguments()
 
     train_dir = dir
