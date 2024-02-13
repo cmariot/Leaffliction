@@ -361,6 +361,11 @@ def transform_image(
         "Pseudolandmarks": cv2.cvtColor(pseudolandmarks, cv2.COLOR_BGR2RGB)
     }
 
+    # Used in predict.py to return the transformed images
+    if is_launch_on_dir is None:
+        [images.pop(key) for key in images.keys() - options]
+        return images
+
     # If the argument of the program is a file, display the transformation
     if not is_launch_on_dir:
 
@@ -384,7 +389,7 @@ def transform_image(
 
     # Else if the argument of the program is a directory,
     # save the transformations
-    else:
+    elif is_launch_on_dir:
 
         for label, img in images.items():
             if label in options:
@@ -392,6 +397,8 @@ def transform_image(
                     get_image_name(new_path, label),
                     cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 )
+
+
 
 
 def transform_directory(path, dest, options):

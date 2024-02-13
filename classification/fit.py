@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from numpy import asarray
 import sys
+import pickle
 
 
 def train(directory, model_path, epochs):
@@ -28,9 +29,10 @@ def train(directory, model_path, epochs):
         batch_size=50
     )
 
-
     train_class_names = train_ds.class_names
     val_class_names = val_ds.class_names
+    print(train_class_names)
+    
 
     # print(class_names)
 
@@ -50,7 +52,7 @@ def train(directory, model_path, epochs):
     #     ts.keras.layers.Dense(10)
     # ])
 
-    num_classes = 2
+    num_classes = len(val_class_names)
 
     model = ts.keras.Sequential([
         ts.keras.layers.Rescaling(1./255),
@@ -63,7 +65,10 @@ def train(directory, model_path, epochs):
         ts.keras.layers.Dropout(0.2),
         ts.keras.layers.Flatten(),
         ts.keras.layers.Dense(128, activation='relu'),
-        ts.keras.layers.Dense(num_classes, activation='softmax')
+        ts.keras.layers.Dense(
+            units=num_classes,
+            activation='softmax'
+        )
     ])
 
     model.compile(
@@ -78,8 +83,12 @@ def train(directory, model_path, epochs):
         epochs=epochs
     )
 
-    print("Model saved at : ", model_path)
     model.save(model_path)
+
+    with open(model_path + "/class_names.pkl", "wb") as f:
+        pickle.dump(val_class_names, f)
+
+    print("Model saved at : ", model_path)
 
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']
@@ -101,11 +110,17 @@ def train(directory, model_path, epochs):
 
     plt.show()
 
-    predictions = model.predict(val_ds, verbose=0)
-    print(predictions)
+    # predictions = model.predict(val_ds, verbose=0)
+    # print(predictions)
 
     total_images = 0
     correct = 0
+
+    for data in val_ds:
+        pred = model(data)
+        print(pred)
+
+    exit()
 
     for image, labels in val_ds.take(1):
 
@@ -117,6 +132,8 @@ def train(directory, model_path, epochs):
             print("Official label :", labels[i])
             print("Predicted label: ", predictions[i])
 
+            # Index 0 : Apple
+            # Index 1 : Grape
             if predictions[i][0] >= predictions[i][1]:
                 title = "Apple"
             else:

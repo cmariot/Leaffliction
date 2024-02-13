@@ -74,7 +74,7 @@ def main():
     # Test sur le minifitrans
     # train_dir = "minifitrans"
 
-    train(train_dir, "model", 15)
+    train(train_dir, "model", 10)
 
 
 if __name__ == "__main__":
