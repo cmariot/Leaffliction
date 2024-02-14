@@ -3,13 +3,7 @@ from Balancing import augmentation_on_directory
 from Transformation import transform_directory
 from Fit import train
 import numpy as np
-<<<<<<< HEAD
-<<<<<<< HEAD
 import os
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
 
 
 def parse_arguments():
@@ -51,16 +45,10 @@ def main():
         augmentation,
         transformation
     ) = parse_arguments()
-<<<<<<< HEAD
-<<<<<<< HEAD
 
     # Check if the directory exists
     if not os.path.isdir(dir):
         raise Exception("The directory does not exist")
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
 
     train_dir = dir
     aug_dir = dir + "_augmented/"

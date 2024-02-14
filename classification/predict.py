@@ -6,11 +6,8 @@ import sys
 from Transformation import transform_image
 from tensorflow import keras
 import pickle
-<<<<<<< HEAD
 import os
-=======
 
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
 
 def get_class_name(image_path):
     splitted = image_path.split("/")
@@ -19,22 +16,17 @@ def get_class_name(image_path):
     return splitted[-2]
 
 
-<<<<<<< HEAD
 def predict_image(image_path, model_path, list_transformations):
 
     # Load model
     model = keras.models.load_model(model_path)
     with open(f"{model_path}/class_names.pkl", "rb") as f:
         class_names = pickle.load(f)
-=======
-if __name__ == "__main__":
 
-    image_path = sys.argv[1]
-    model_path = "model"
-    list_transformations = [
-        "Mask"
-    ]
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
+    # Load model
+    model = keras.models.load_model(model_path)
+    with open(f"{model_path}/class_names.pkl", "rb") as f:
+        class_names = pickle.load(f)
 
     # Load model
     model = keras.models.load_model(model_path)
@@ -54,14 +46,8 @@ if __name__ == "__main__":
         new_path=""
     )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     correct = 0
 
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
     for key, image in images_transformed.items():
 
         x = np.expand_dims(image, axis=0)
@@ -92,15 +78,7 @@ if __name__ == "__main__":
                 color = "red"
         else:
             title = f"Class predicted: {y_hat}"
-<<<<<<< HEAD
-<<<<<<< HEAD
             color = 'black'
-=======
-            color - 'black'
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
-=======
-            color - 'black'
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
 
         plt.suptitle(
             title,
@@ -110,7 +88,6 @@ if __name__ == "__main__":
             color=color
         )
 
-<<<<<<< HEAD
         # plt.show()
         plt.savefig(f"{key}.png")
 
@@ -145,9 +122,4 @@ if __name__ == "__main__":
 
     else:
         predict_image(image_path, model_path, list_transformations)
-=======
         plt.show()
-<<<<<<< HEAD
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
-=======
->>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
