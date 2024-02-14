@@ -1,15 +1,9 @@
 import tensorflow as ts
-import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
-from numpy import asarray
-import sys
 import pickle
 
 
 def train(directory, model_path, epochs):
-
-    # dir -> train_ds, val_ds, test_ds
 
     train_ds = ts.keras.utils.image_dataset_from_directory(
         directory,
@@ -30,28 +24,8 @@ def train(directory, model_path, epochs):
     )
 
     train_class_names = train_ds.class_names
-    val_class_names = val_ds.class_names
-    print(train_class_names)
 
-    # print(class_names)
-
-    # for images, labels in train_ds.take(1):
-    #     for i in range(50):
-    #         ax = plt.subplot(10, 5, i + 1)
-    #         plt.imshow(images[i].numpy().astype("uint8"))
-    #         plt.axis("off")
-    #         #print(int(labels[i]))
-    #         plt.title(class_names[int(labels[i])], fontsize=8)
-
-    # plt.show()
-
-    # model = ts.keras.Sequential([
-    #     ts.keras.layers.Flatten(input_shape=(28, 28)),
-    #     ts.keras.layers.Dense(128, activation='relu'),
-    #     ts.keras.layers.Dense(10)
-    # ])
-
-    num_classes = len(val_class_names)
+    num_classes = len(train_class_names)
 
     model = ts.keras.Sequential([
         ts.keras.layers.Rescaling(1./255),
@@ -85,7 +59,10 @@ def train(directory, model_path, epochs):
     model.save(model_path)
 
     with open(model_path + "/class_names.pkl", "wb") as f:
-        pickle.dump(val_class_names, f)
+        pickle.dump(train_class_names, f)
+
+    with open(model_path + "/validation_paths.pkl", "wb") as f:
+        pickle.dump(val_ds.file_paths, f)
 
     print("Model saved at : ", model_path)
 
@@ -108,76 +85,3 @@ def train(directory, model_path, epochs):
     plt.legend()
 
     plt.show()
-
-    # predictions = model.predict(val_ds, verbose=0)
-    # print(predictions)
-
-    total_images = 0
-    correct = 0
-
-    for data in val_ds:
-        pred = model(data)
-        print(pred)
-
-    exit()
-
-    for image, labels in val_ds.take(1):
-
-        print("Labels : ", str(labels))
-
-        for i in range(len(labels)):
-
-            print("Image number", i, ":")
-            print("Official label :", labels[i])
-            print("Predicted label: ", predictions[i])
-
-            # Index 0 : Apple
-            # Index 1 : Grape
-            if predictions[i][0] >= predictions[i][1]:
-                title = "Apple"
-            else:
-                title = "Grape"
-
-            if (title == "Grape" and labels[i] == 1 ) or (title == "Apple" and labels[i] == 0):
-                color = "red"
-                correct += 1
-            else:
-                color = "black"
-
-            plt.title(val_class_names[int(labels[i])] + " prediction : " + title, color=color)
-            plt.imshow(image[i].numpy().astype("uint8"))
-            plt.show()
-
-            total_images += 1
-
-    print("Total images : ", total_images)
-    print("Correct predictions : ", correct)
-    print("Accuracy : ", correct / total_images)
-
-    # for image, labels in val_ds.take(1):
-    #     for i in range(33):
-    #         if predictions[i][0] >= predictions[i][1]:
-    #             title = "Apple"
-    #         else:
-    #             title = "Grape"
-    #         if (title == "Grape" and labels[i] == 1 ) or (title == "Apple" and labels[i] == 0):
-    #             color = "red"
-    #         else:
-    #             color = "black"
-
-    #         plt.title(class_names[int(labels[i])] + " prediction : " + title, color=color)
-    #         plt.imshow(image[i].numpy().astype("uint8"))
-    #         plt.show()
-
-    image = asarray(Image.open(sys.argv[1]))
-    topredic = np.expand_dims(image, axis=0)
-    pred = model.predict(topredic, verbose=0)
-    if (pred[0][0] >= pred[0][1]):
-        title = "Grape"
-    else:
-        title = "Apple"
-    plt.title(sys.argv[1] + " Predicted " + title)
-    plt.imshow(image)
-    plt.show()
-
-    exit()

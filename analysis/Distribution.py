@@ -109,6 +109,9 @@ def main():
     # in the directory as value
     data = count_files(path)
 
+    nb_files = sum(data.values())
+    print(f"Number of files in {path}: {nb_files}")
+
     # print(data)
     # print(f"Number of directories: {len(data)}")
     # print(f"Number of files: {sum(data.values())}")

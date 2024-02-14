@@ -16,27 +16,7 @@ def get_class_name(image_path):
     return splitted[-2]
 
 
-def predict_image(image_path, model_path, list_transformations):
-
-    # Load model
-    model = keras.models.load_model(model_path)
-    with open(f"{model_path}/class_names.pkl", "rb") as f:
-        class_names = pickle.load(f)
-
-    # Load model
-    model = keras.models.load_model(model_path)
-    with open(f"{model_path}/class_names.pkl", "rb") as f:
-        class_names = pickle.load(f)
-
-    # Load model
-    model = keras.models.load_model(model_path)
-    with open(f"{model_path}/class_names.pkl", "rb") as f:
-        class_names = pickle.load(f)
-
-    # Load model
-    model = keras.models.load_model(model_path)
-    with open(f"{model_path}/class_names.pkl", "rb") as f:
-        class_names = pickle.load(f)
+def predict_image(image_path, model, class_names, list_transformations, display_prediction=True):
 
     # Transformation de l'image
     images_transformed = transform_image(
@@ -57,69 +37,96 @@ def predict_image(image_path, model_path, list_transformations):
         y_index = np.argmax(y_pred)
         y_hat = class_names[y_index]
 
-        fig, axes = plt.subplots(1, 2)
-
-        # Original image and transformed image
-        axes[0].set_title("Original")
-        axes[0].imshow(asarray(Image.open(image_path)))
-        axes[0].axis('off')
-
-        axes[1].set_title("Transformed")
-        axes[1].imshow(image)
-        axes[1].axis('off')
-
         y = get_class_name(image_path)
-
-        if y in class_names:
-            title = f"Class predicted: {y_hat}\nOriginal class: {y}"
-            if y == y_hat:
-                color = "green"
-            else:
-                color = "red"
-        else:
-            title = f"Class predicted: {y_hat}"
-            color = 'black'
-
-        plt.suptitle(
-            title,
-            fontsize=13,
-            fontweight="bold",
-            y=0.1,
-            color=color
-        )
-
-        # plt.show()
-        plt.savefig(f"{key}.png")
 
         if y == y_hat:
             correct += 1
+
+        print(f"Predicted class: {y_hat}")
+        print(f"Original class: {y}")
+
+        if display_prediction:
+
+            fig, axes = plt.subplots(1, 2)
+
+            # Original image and transformed image
+            axes[0].set_title("Original")
+            axes[0].imshow(asarray(Image.open(image_path)))
+            axes[0].axis('off')
+
+            axes[1].set_title("Transformed")
+            axes[1].imshow(image)
+            axes[1].axis('off')
+
+            if y in class_names:
+
+                title = f"Class predicted: {y_hat}\nOriginal class: {y}"
+                if y == y_hat:
+                    color = "green"
+                else:
+                    color = "red"
+
+            else:
+
+                title = f"Class predicted: {y_hat}"
+                color = 'black'
+
+            plt.suptitle(
+                title,
+                fontsize=13,
+                fontweight="bold",
+                y=0.1,
+                color=color
+            )
+
+            plt.show()
+            # plt.savefig(f"{key}.png")
+            plt.close()
 
     return correct / len(images_transformed)
 
 
 if __name__ == "__main__":
 
-    image_path = sys.argv[1]
     model_path = "model"
     list_transformations = [
         "Mask"
     ]
 
-    if os.path.isdir(image_path):
+    # Load model
+    model = keras.models.load_model(model_path)
+    with open(f"{model_path}/class_names.pkl", "rb") as f:
+        class_names = pickle.load(f)
 
-        correct = 0
-        total = 0
-        for root, dirs, files in os.walk(image_path):
-            for file in files:
-                image_path = os.path.join(root, file)
-                correct += predict_image(
+    if len(sys.argv) < 2:
+
+        with open(f"{model_path}/validation_paths.pkl", "rb") as f:
+            validation_paths = pickle.load(f)
+
+        correct_predictions = 0
+        total_predictions = 0
+        display_prediction = True
+
+        for image_path in validation_paths:
+            try:
+                correct_predictions += predict_image(
                     image_path,
-                    model_path,
-                    list_transformations
+                    model,
+                    class_names,
+                    list_transformations,
+                    display_prediction
                 )
-                total += 1
-        print(f"Accuracy: {correct / total}")
+                total_predictions += 1
+            except KeyboardInterrupt:
+                if display_prediction:
+                    display_prediction = False
+                    continue
+                else:
+                    break
+
+            print(f"Accuracy: {correct_predictions / total_predictions}")
 
     else:
-        predict_image(image_path, model_path, list_transformations)
-        plt.show()
+
+        image_path = sys.argv[1]
+        predict_image(image_path, model, list_transformations)

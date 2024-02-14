@@ -109,10 +109,6 @@ def main():
     # in the directory as value
     data = count_files(path)
 
-    # print(data)
-    # print(f"Number of directories: {len(data)}")
-    # print(f"Number of files: {sum(data.values())}")
-
     # Bar chart
     plot_bar(data, path)
 
