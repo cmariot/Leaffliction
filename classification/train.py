@@ -37,14 +37,6 @@ def parse_arguments():
     )
 
 
-# Augmentation
-# Transformation
-# Model
-# Training
-# Evaluation
-# Save model
-
-
 def main():
 
     (
@@ -54,8 +46,8 @@ def main():
     ) = parse_arguments()
 
     train_dir = dir
-    aug_dir = "minifitaug/"
-    trans_dir = "minifitrans/"
+    aug_dir = dir + "_augmented/"
+    trans_dir = dir + "_transformed/"
 
     if augmentation:
         augmentation_on_directory(dir, aug_dir, False)
@@ -73,6 +65,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(e)
+    except Exception as error:
+        print(error)
         exit(1)

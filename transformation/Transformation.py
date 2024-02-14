@@ -399,8 +399,6 @@ def transform_image(
                 )
 
 
-
-
 def transform_directory(path, dest, options):
 
     """
