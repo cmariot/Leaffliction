@@ -1,14 +1,9 @@
 import argparse
-import sys
-import os
-sys.path.insert(1, '/media/cmariot/VM/Leaffliction/augmentation')
-sys.path.insert(1, '/media/cmariot/VM/Leaffliction//transformation')
 from Balancing import augmentation_on_directory
 from Transformation import transform_directory
 from Fit import train
 import numpy as np
-
-# Args
+import os
 
 
 def parse_arguments():
@@ -43,20 +38,21 @@ def parse_arguments():
     )
 
 
-# Augmentation
-# Transformation
-# Model
-# Training
-# Evaluation
-# Save model
-
 def main():
 
-    dir, augmentation, transformation = parse_arguments()
+    (
+        dir,
+        augmentation,
+        transformation
+    ) = parse_arguments()
+
+    # Check if the directory exists
+    if not os.path.isdir(dir):
+        raise Exception("The directory does not exist")
 
     train_dir = dir
-    aug_dir = "minifitaug"
-    trans_dir = "minifitrans"
+    aug_dir = dir + "_augmented/"
+    trans_dir = dir + "_transformed/"
 
     if augmentation:
         augmentation_on_directory(dir, aug_dir, False)
@@ -68,18 +64,12 @@ def main():
         transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
         train_dir = trans_dir
 
-    # if augmentation and os.path.exists(aug_dir):
-    #     os.rmdir(aug_dir)
-
-    # Test sur le minifitrans
-    # train_dir = "minifitrans"
-
     train(train_dir, "model", 10)
 
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(e)
+    except Exception as error:
+        print(error)
         exit(1)

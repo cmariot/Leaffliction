@@ -32,7 +32,6 @@ def train(directory, model_path, epochs):
     train_class_names = train_ds.class_names
     val_class_names = val_ds.class_names
     print(train_class_names)
-    
 
     # print(class_names)
 

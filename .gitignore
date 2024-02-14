@@ -1,8 +1,9 @@
 images/
+images_augmented/
+images_transformed/
 augmented_directory/
 en.subject.pdf
 *.JPG
-*.png
 **/__pycache__/
 **/.DS_Store
 classification/model

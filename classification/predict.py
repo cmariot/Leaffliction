@@ -1,34 +1,27 @@
-import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from numpy import asarray
 import sys
-import os
-sys.path.insert(1, '/media/cmariot/VM/Leaffliction//transformation')
 from Transformation import transform_image
 from tensorflow import keras
 import pickle
-
+import os
 
 
 def get_class_name(image_path):
-    return image_path.split("/")[-2]
+    splitted = image_path.split("/")
+    if len(splitted) < 2:
+        return image_path
+    return splitted[-2]
 
 
-if __name__ == "__main__":
-
-    image_path = sys.argv[1]
-    model_path = "model"
+def predict_image(image_path, model_path, list_transformations):
 
     # Load model
-    # model = tf.saved_model.load("model")
     model = keras.models.load_model(model_path)
-    # print(model.layers[-1].vocab)
-
-    list_transformations = [
-        "Mask"
-    ]
+    with open(f"{model_path}/class_names.pkl", "rb") as f:
+        class_names = pickle.load(f)
 
     # Transformation de l'image
     images_transformed = transform_image(
@@ -38,10 +31,10 @@ if __name__ == "__main__":
         new_path=""
     )
 
-    with open(f"{model_path}/class_names.pkl", "rb") as f:
-        class_names = pickle.load(f)
+    correct = 0
 
     for key, image in images_transformed.items():
+
         x = np.expand_dims(image, axis=0)
         y_pred = model.predict(x)
 
@@ -62,48 +55,55 @@ if __name__ == "__main__":
 
         y = get_class_name(image_path)
 
-        if y == y_hat:
-            color = "green"
+        if y in class_names:
+            title = f"Class predicted: {y_hat}\nOriginal class: {y}"
+            if y == y_hat:
+                color = "green"
+            else:
+                color = "red"
         else:
-            color = "red"
+            title = f"Class predicted: {y_hat}"
+            color = 'black'
 
         plt.suptitle(
-            f"Class predicted: {y_hat}\nOriginal class: {y}",
+            title,
             fontsize=13,
             fontweight="bold",
             y=0.1,
             color=color
         )
 
-        plt.show()
+        # plt.show()
+        plt.savefig(f"{key}.png")
 
-    exit()
+        if y == y_hat:
+            correct += 1
+
+    return correct / len(images_transformed)
 
 
+if __name__ == "__main__":
 
-    # Predict
-    nb_apples = 0
-    total = 0
-    for root, dirs, files in os.walk(image_path):
-        for file in files:
+    image_path = sys.argv[1]
+    model_path = "model"
+    list_transformations = [
+        "Mask"
+    ]
 
-            image_path = os.path.join(root, file)
-            image = asarray(Image.open(image_path))
-            x = np.expand_dims(image, axis=0)
-            y_pred = model.predict(x)
+    if os.path.isdir(image_path):
 
-            # Get the class names
-            y_index = np.argmax(y_pred)
-            class_names = ["Apple", "Grape"]
-            y_hat = class_names[y_index]
+        correct = 0
+        total = 0
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                image_path = os.path.join(root, file)
+                correct += predict_image(
+                    image_path,
+                    model_path,
+                    list_transformations
+                )
+                total += 1
+        print(f"Accuracy: {correct / total}")
 
-            if y_index == 1:
-                nb_apples += 1
-            # plt.title(sys.argv[1] + " Predicted " + y_hat)
-            # plt.imshow(image)
-            # plt.show()
-            total += 1
-
-    print("Number of apples : ", nb_apples)
-    print("Total images : ", total)
-    exit()
+    else:
+        predict_image(image_path, model_path, list_transformations)

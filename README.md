@@ -9,7 +9,7 @@ Our dataset is composed of 7,221 images of healthy and diseased leaves.
 The images are divided into 8 categories, each corresponding to a different plant species or a different disease.
 </br>
 </br>
-<img src="./assets/different_categories.png" />
+<img src="./utils/different_categories.png" />
 
 ## Part II : Data augmentation
 
