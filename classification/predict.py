@@ -8,7 +8,6 @@ from tensorflow import keras
 import pickle
 import os
 
-
 def get_class_name(image_path):
     splitted = image_path.split("/")
     if len(splitted) < 2:
@@ -16,7 +15,22 @@ def get_class_name(image_path):
     return splitted[-2]
 
 
+<<<<<<< HEAD
 def predict_image(image_path, model_path, list_transformations):
+
+    # Load model
+    model = keras.models.load_model(model_path)
+    with open(f"{model_path}/class_names.pkl", "rb") as f:
+        class_names = pickle.load(f)
+=======
+if __name__ == "__main__":
+
+    image_path = sys.argv[1]
+    model_path = "model"
+    list_transformations = [
+        "Mask"
+    ]
+>>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
 
     # Load model
     model = keras.models.load_model(model_path)
@@ -31,8 +45,11 @@ def predict_image(image_path, model_path, list_transformations):
         new_path=""
     )
 
+<<<<<<< HEAD
     correct = 0
 
+=======
+>>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
     for key, image in images_transformed.items():
 
         x = np.expand_dims(image, axis=0)
@@ -63,7 +80,11 @@ def predict_image(image_path, model_path, list_transformations):
                 color = "red"
         else:
             title = f"Class predicted: {y_hat}"
+<<<<<<< HEAD
             color = 'black'
+=======
+            color - 'black'
+>>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
 
         plt.suptitle(
             title,
@@ -73,6 +94,7 @@ def predict_image(image_path, model_path, list_transformations):
             color=color
         )
 
+<<<<<<< HEAD
         # plt.show()
         plt.savefig(f"{key}.png")
 
@@ -107,3 +129,6 @@ if __name__ == "__main__":
 
     else:
         predict_image(image_path, model_path, list_transformations)
+=======
+        plt.show()
+>>>>>>> 61e0272355785fb3ec02a1728b7d5531bfa8780b
