@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from PIL import Image
 from numpy import asarray
 import sys
 from Transformation import transform_image
 from tensorflow import keras
 import pickle
-import os
 
 
 def get_class_name(image_path):
@@ -16,7 +16,13 @@ def get_class_name(image_path):
     return splitted[-2]
 
 
-def predict_image(image_path, model, class_names, list_transformations, display_prediction=True):
+def predict_image(
+    image_path,
+    model,
+    class_names,
+    list_transformations,
+    display_prediction=True
+):
 
     # Transformation de l'image
     images_transformed = transform_image(
@@ -47,16 +53,31 @@ def predict_image(image_path, model, class_names, list_transformations, display_
 
         if display_prediction:
 
-            fig, axes = plt.subplots(1, 2)
+            gs = gridspec.GridSpec(2, 4)
+            plt.figure(figsize=(16, 9))
+            gs.update(wspace=0.5)
+
+            ax1 = plt.subplot(gs[0, :2])
+            ax2 = plt.subplot(gs[0, 2:])
+            ax3 = plt.subplot(gs[1, 1:3])
 
             # Original image and transformed image
-            axes[0].set_title("Original")
-            axes[0].imshow(asarray(Image.open(image_path)))
-            axes[0].axis('off')
+            ax1.set_title("Original image")
+            ax1.imshow(asarray(Image.open(image_path)))
+            ax1.axis('off')
 
-            axes[1].set_title("Transformed")
-            axes[1].imshow(image)
-            axes[1].axis('off')
+            ax2.set_title("Transformed image used for prediction")
+            ax2.imshow(image)
+            ax2.axis('off')
+
+            # Bar plot of the predictions probabilities
+            ax3.set_title("Predictions probabilities for each class")
+            ax3.barh(y=class_names, width=y_pred[0], height=0.2)
+            ax3.set_yticks(range(len(class_names)))
+            ax3.set_yticklabels(class_names)
+            ax3.set_xlabel("Probability")
+            ax3.set_ylabel("Class")
+            ax3.set_xlim([0, 1])
 
             if y in class_names:
 
@@ -71,11 +92,14 @@ def predict_image(image_path, model, class_names, list_transformations, display_
                 title = f"Class predicted: {y_hat}"
                 color = 'black'
 
+            # Title at the Axes[1, 1] position
             plt.suptitle(
                 title,
+                y=0.95,
                 fontsize=13,
                 fontweight="bold",
-                y=0.1,
+                ha="center",
+                va="center",
                 color=color
             )
 
@@ -129,4 +153,10 @@ if __name__ == "__main__":
     else:
 
         image_path = sys.argv[1]
-        predict_image(image_path, model, list_transformations)
+        predict_image(
+            image_path,
+            model,
+            class_names,
+            list_transformations,
+            display_prediction=True
+        )

@@ -64,7 +64,7 @@ def main():
         transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
         train_dir = trans_dir
 
-    train(train_dir, "model", 10)
+    train(train_dir, "model", 1)
 
 
 if __name__ == "__main__":
