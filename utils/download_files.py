@@ -12,7 +12,7 @@ if __name__ == '__main__':
     fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': S3_ENDPOINT_URL})
 
     BUCKET = "cmariot"
-    DIR = "minifitrans"
+    DIR = "model"
 
     if not fs.exists(BUCKET):
         print(f"The bucket {BUCKET} does not exist.")

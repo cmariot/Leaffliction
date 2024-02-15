@@ -1,0 +1,4 @@
+- [ ] Verifier BGR dans augmentation / transformation
+- [ ] Bibliotheque python
+- [ ] Training sur cloud avec augmentation / transformation (15 epochs + early stopping)
+- [ ] 
