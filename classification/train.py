@@ -64,10 +64,12 @@ def main():
         transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
         train_dir = trans_dir
 
-    train(train_dir, "model", 1)
+    train(train_dir, "model", 1000)
 
 
 if __name__ == "__main__":
+    main()
+    exit()
     try:
         main()
     except Exception as error:

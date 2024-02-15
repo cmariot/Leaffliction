@@ -1,10 +1,10 @@
 import tensorflow as ts
 import matplotlib.pyplot as plt
 import pickle
-from keras import Sequential, layers, losses
+from keras import Sequential, layers, losses, callbacks
 
 
-def plot_training_metrics(history, model_path, epochs):
+def plot_training_metrics(history, model_path):
 
     """
     Plot the training metrics
@@ -18,6 +18,8 @@ def plot_training_metrics(history, model_path, epochs):
 
     loss = history.history['loss']
     val_loss = history.history['val_loss']
+
+    epochs = len(loss)
 
     plt.subplot(1, 2, 1)
     plt.title("Accuracy")
@@ -77,6 +79,11 @@ def train(directory, model_path, epochs):
 
     num_classes = len(train_class_names)
 
+    callback = callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=3
+    )
+
     model = Sequential([
         layers.Rescaling(1./255),
         layers.Conv2D(32, 30, activation='relu'),
@@ -109,9 +116,10 @@ def train(directory, model_path, epochs):
     history = model.fit(
         train_ds,
         validation_data=val_ds,
-        epochs=epochs
+        epochs=epochs,
+        callbacks=[callback]
     )
 
-    save_model(model, model_path, train_class_names)
+    save_model(model, model_path, train_class_names, val_ds)
 
-    plot_training_metrics(history, model_path, epochs)
+    plot_training_metrics(history, model_path)

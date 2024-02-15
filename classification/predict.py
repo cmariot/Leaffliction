@@ -7,6 +7,7 @@ import sys
 from Transformation import transform_image
 from tensorflow import keras
 import pickle
+import os
 
 
 def get_class_name(image_path):
@@ -78,6 +79,8 @@ def predict_image(
             ax3.set_xlabel("Probability")
             ax3.set_ylabel("Class")
             ax3.set_xlim([0, 1])
+            for i, v in enumerate(y_pred[0]):
+                ax3.text(v, i, f"{v:.2f}", ha="left", va="center")
 
             if y in class_names:
 
@@ -132,7 +135,14 @@ if __name__ == "__main__":
         display_prediction = True
 
         for image_path in validation_paths:
+
+            if not os.path.isfile(image_path):
+
+                print(f"The file {image_path} does not exist.")
+                continue
+
             try:
+
                 correct_predictions += predict_image(
                     image_path,
                     model,
@@ -141,9 +151,12 @@ if __name__ == "__main__":
                     display_prediction
                 )
                 total_predictions += 1
+
             except KeyboardInterrupt:
+
                 if display_prediction:
                     display_prediction = False
+                    plt.close()
                     continue
                 else:
                     break
