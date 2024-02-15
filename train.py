@@ -1,7 +1,7 @@
 import argparse
-from Balancing import augmentation_on_directory
+from mlpackage.Balancing import augmentation_on_directory
 from Transformation import transform_directory
-from Fit import train
+from mlpackage.Fit import train
 import numpy as np
 import os
 
@@ -61,7 +61,7 @@ def main():
         aug_dir = dir
 
     if transformation:
-        transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
+        transform_directory(aug_dir, trans_dir, np.array(["Pseudolandmarks"]))
         train_dir = trans_dir
 
     train(train_dir, "model", 1000)
