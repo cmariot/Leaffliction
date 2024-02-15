@@ -6,5 +6,3 @@ en.subject.pdf
 *.JPG
 **/__pycache__/
 **/.DS_Store
-classification/model
-
