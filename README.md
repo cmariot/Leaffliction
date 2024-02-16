@@ -18,3 +18,10 @@ We generate new images by applying small random transformations to the original 
 This reduces overfitting and improves the performance of our model.
 
 ## Part III : Image transformation
+
+To enhance the performance of our model, we implement various transformations on augmented images.
+This includes tasks such as background removal, mask creation, and outlining the borders of each leaf.
+The model will undergo training using these transformed images.
+
+## Part IV : Training and prediction
+

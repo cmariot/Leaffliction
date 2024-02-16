@@ -27,7 +27,7 @@ def parse_argument() -> str:
     parser.add_argument(
         dest='path',
         type=str,
-        help='Path of the image / direcrory of image to transform',
+        help='Path of the image / directory of image to transform',
     )
 
     parser.add_argument(
@@ -407,16 +407,7 @@ def transform_directory(path, dest, options):
     """
 
     if not os.path.isdir(dest):
-
         os.makedirs(dest)
-        # split_path = dest.split("/")
-
-        # for i in range(1, len(split_path) + 1):
-        #     new_path = "/".join(split_path[:i])
-        #     print(f"Test to create {new_path}")
-        #     if not os.path.isdir(new_path):
-        #         print(f"Create directory {new_path}")
-        #         os.mkdir(new_path)
 
     for root, dirs, files in os.walk(path):
 
@@ -424,7 +415,7 @@ def transform_directory(path, dest, options):
 
         for dir in dirs:
             if not os.path.isdir(os.path.join(new_root, dir)):
-                os.mkdir(os.path.join(new_root, dir))
+                os.makedirs(os.path.join(new_root, dir))
 
         for file in tqdm(files):
             full_path = os.path.join(root, file)

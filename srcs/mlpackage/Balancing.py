@@ -89,27 +89,53 @@ class imageName():
         self.number += 1
 
 
-def main():
-    old_directory = parse_argument()
-    augmentation_on_directory(old_directory, "augmented_directory", True)
+def warning_dir_exists(new_directory):
+
+    print(
+        f"Warning, the directory {new_directory} already exists.",
+        "Balancing in this directory may append a wrong number of files."
+    )
+
+    while (1):
+
+        need_delete_dir = input(
+            f"Do you want to remove the existing {new_directory} ? (y/n) "
+        )
+
+        if need_delete_dir == "y":
+
+            for root, dirs, files in os.walk(new_directory, topdown=False):
+
+                for file in files:
+                    os.remove(os.path.join(root, file))
+
+                for dir in dirs:
+                    os.rmdir(os.path.join(root, dir))
+
+            if os.path.isdir(new_directory):
+                os.rmdir(new_directory)
+
+            print(
+                f"The directory {new_directory} has been successfully",
+                "deleted, it will be rectreated with new augmented images"
+            )
+            break
+        elif need_delete_dir == "n":
+            print(
+                f"Anyway, new images will be added to {new_directory}"
+            )
+            break
+        else:
+            print(
+                "Invalid input, type 'y' or 'n'."
+            )
+            continue
 
 
-def augmentation_on_directory(old_directory, new_directory, rac):
+def augmentation_on_directory(old_directory, new_directory):
 
     if not os.path.isdir(old_directory):
         raise Exception("Invalid directory")
-
-    slash_index = old_directory.rfind("/")
-
-    if (slash_index == -1):
-        old_directory_name = old_directory
-    else:
-        old_directory_name = old_directory[slash_index + 1:]
-
-    print(new_directory)
-
-    if rac:
-        new_directory = "../" + new_directory + "/" + old_directory_name
 
     augmentedFunctions = {
         "Contrast": img_contrast,
@@ -125,25 +151,24 @@ def augmentation_on_directory(old_directory, new_directory, rac):
     to_balance = get_max_files(old_directory)
 
     new_directory = old_directory + "_augmented"
-    print("new dir", new_directory)
-    # if not os.path.isdir("../" + new_directory):
-    #     os.mkdir("../" + new_directory)
+
+    if os.path.isdir(new_directory):
+        warning_dir_exists(new_directory)
 
     if not os.path.isdir(new_directory):
-        print("Creating directory " + new_directory)
-        os.mkdir(new_directory)
+        os.makedirs(new_directory)
 
     for root, dirs, files in os.walk(old_directory):
 
-        # Create the new directory structure
         for dir in dirs:
-            if not os.path.isdir(new_directory + "/" + dir):
-                os.mkdir(new_directory + "/" + dir)
+            if not os.path.isdir(os.path.join(new_directory, dir)):
+                os.makedirs(os.path.join(new_directory, dir))
 
-        if (len(files) == 0):
+        if len(files) == 0:
             continue
 
         for file in files:
+
             img, path, filename = pcv.readimage(root + "/" + file)
             image_name = get_new_image_name(
                 root, file, "", old_directory, new_directory
@@ -152,7 +177,7 @@ def augmentation_on_directory(old_directory, new_directory, rac):
 
         for i in range(to_balance - len(files)):
 
-            file = files[i % len(files)]    # On ouvre notre image
+            file = files[i % len(files)]
             img, path, filename = pcv.readimage(root + "/" + file)
             random_number = random.randint(0, len(augmentedFunctions) - 1)
             augmented_image = augmentation_functions[random_number](img)
@@ -165,10 +190,15 @@ def augmentation_on_directory(old_directory, new_directory, rac):
 
             while os.path.isfile(new_filename.get_name()):
                 new_filename.increment()
+
             image_name = new_filename.get_name()
             cv.imwrite(image_name, augmented_image)
-
             print(image_name)
+
+
+def main():
+    old_directory = parse_argument()
+    augmentation_on_directory(old_directory, "augmented_directory")
 
 
 if __name__ == "__main__":

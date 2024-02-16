@@ -152,21 +152,22 @@ def main():
         ax.label_outer()
 
     point_pos = filename.rfind(".")
-    # filename_without_ext = filename[:point_pos]
-    extension = filename[point_pos:]
+
+    if point_pos == -1:
+        extension = ""
+    else:
+        extension = filename[point_pos:]
+
     for i, image in enumerate(imgs):
         image_name = "./Image1002" + "_" + labels[i] + extension
         cv.imwrite(image_name, image)
     plt.show()
 
-    # for i in range (10):
-    #     distortion = img_distortion(img, img.shape[0], img.shape[1])
-    #     pcv.plot_image(distortion)
-
 
 if __name__ == "__main__":
-    main()
 
-
-# Doc transformation :
-# https://docs.opencv.org/3.4/da/d6e/tutorial_py_geometric_transformations.html
+    try:
+        main()
+    except Exception as error:
+        print(error)
+        exit(1)
