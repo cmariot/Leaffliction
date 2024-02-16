@@ -31,6 +31,14 @@ def parse_arguments():
 
     args = parser.parse_args()
 
+    # Check if the directory exists
+    if not os.path.isdir(args.dir):
+        raise Exception("The directory given as argument does not exist")
+
+    # Revome the last / in dir if it exists
+    if len(args.dir) > 0 and args.dir[-1] == "/":
+        args.dir = args.dir[:-1]
+
     return (
         args.dir,
         not args.augmentation,
@@ -46,9 +54,7 @@ def main():
         transformation
     ) = parse_arguments()
 
-    # Check if the directory exists
-    if not os.path.isdir(dir):
-        raise Exception("The directory does not exist")
+
 
     train_dir = dir
     aug_dir = dir + "_augmented/"

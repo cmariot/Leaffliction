@@ -3,7 +3,7 @@ PYTHON=python3
 all: analysis augmentation transformation classification
 
 analysis:
-	@(cd ./analysis ; $(PYTHON) Distribution.py ../images/)
+	@($(PYTHON) srcs/Distribution.py microdb)
 
 augmentation:
 	@(cd ./augmentation ; $(PYTHON) Augmentation.py ../images/Apple_healthy/image\ \(1\).JPG)
