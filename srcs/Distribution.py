@@ -22,7 +22,7 @@ def parse_argument() -> str:
 def path_to_name(path: str) -> str:
 
     """
-    Return the name of the directory without the path,
+    Return the name of the last directory in a path without the root,
     if the path is a file return the name of the file
     """
 
