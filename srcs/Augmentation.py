@@ -8,14 +8,23 @@ import matplotlib.pyplot as plt
 
 
 def parse_argument():
+
     parser = argparse.ArgumentParser(
         prog='Augmentation',
-        description='This program balance the number of images' +
-                    'for each variety and disease'
+        description='This program displays the original' +
+        'image and the augmented images.'
     )
     parser.add_argument('filename')
     args = parser.parse_args()
-    return args.filename
+
+    filename = args.filename
+
+    if not os.path.exists(filename):
+        raise Exception("The path does not exist")
+    elif not os.path.isfile(filename):
+        raise Exception("The path is not a file")
+
+    return filename
 
 
 def img_contrast(img, alpha=-100, beta=2):
@@ -114,11 +123,6 @@ def main():
 
     filename = parse_argument()
 
-    if not os.path.exists(filename):
-        raise Exception("The path does not exist")
-    elif not os.path.isfile(filename):
-        raise Exception("The path is not a file")
-
     img, path, name = pcv.readimage(filename)
     if img is None:
         raise Exception("The file is not an image")
@@ -157,10 +161,12 @@ def main():
         extension = ""
     else:
         extension = filename[point_pos:]
+        filename = filename[:point_pos]
 
     for i, image in enumerate(imgs):
-        image_name = "./Image1002" + "_" + labels[i] + extension
-        cv.imwrite(image_name, image)
+        image_name = filename + "_" + labels[i] + extension
+        if labels[i] != "Original":
+            cv.imwrite(image_name, image)
     plt.show()
 
 

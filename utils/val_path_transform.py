@@ -17,8 +17,8 @@ if __name__ == "__main__":
     new_paths = []
 
     for path in validation_paths:
-        path = path.replace(sys.argv[2], sys.argv[3])
-        new_paths.append(path)
+        # path = path.replace(sys.argv[2], sys.argv[3])
+        # new_paths.append(path)
         print(path)
 
     # Rm the old paths file if it exists

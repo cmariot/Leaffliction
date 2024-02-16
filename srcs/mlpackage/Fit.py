@@ -38,7 +38,7 @@ def plot_training_metrics(history, model_path):
     plt.show()
 
 
-def save_model(model, model_path, train_class_names, val_ds):
+def save_model(model, model_path, train_class_names, validation_paths_lst):
 
     """
     Save the trained model and the class names
@@ -49,13 +49,55 @@ def save_model(model, model_path, train_class_names, val_ds):
     with open(model_path + "/class_names.pkl", "wb") as f:
         pickle.dump(train_class_names, f)
 
+    # set_validation_paths(val_ds, model_path)
+
     with open(model_path + "/validation_paths.pkl", "wb") as f:
-        pickle.dump(val_ds.file_paths, f)
+        pickle.dump(validation_paths_lst, f)
 
     print("Model saved at : ", model_path)
 
 
-def train(directory, model_path, epochs):
+def set_validation_paths(val_ds, is_augmented, is_transformed, transformation_dir: str, original_dir):
+
+    """
+    Transform the validation paths to the original paths
+    Will be saved in a pickle file, used for the prediction
+    """
+
+    if not is_transformed and not is_augmented:
+        return
+
+    if transformation_dir[-1] == "/":
+        transformation_dir = transformation_dir[:-1]
+
+    validation_paths_lst = []
+    for path in val_ds.file_paths:
+        path = path.replace(transformation_dir, original_dir, 1)
+        slash_index = path.rfind("/")
+        if slash_index != -1:
+            filename = path[slash_index + 1:]
+        extension_index = path.rfind(".")
+        extension = path[extension_index:]
+        for i in range(is_augmented + is_transformed):
+            underscore_index = filename.rfind("_")
+            if underscore_index == -1:
+                break
+            else:
+                filename = filename[:underscore_index]
+            path = path[:slash_index + 1] + filename
+        path = path + extension
+        validation_paths_lst.append(path)
+    return validation_paths_lst
+
+
+def train(
+    directory,
+    model_path,
+    epochs,
+    is_augmented,
+    is_transformed,
+    original_dir
+):
 
     train_ds = ts.keras.utils.image_dataset_from_directory(
         directory,
@@ -75,6 +117,17 @@ def train(directory, model_path, epochs):
         batch_size=50
     )
 
+    # Will be moved in the save_model function
+    validation_paths_lst = set_validation_paths(
+        val_ds,
+        is_augmented,
+        is_transformed,
+        directory,
+        original_dir
+    )
+
+    for path in val_ds.file_paths:
+        print(path)
     train_class_names = train_ds.class_names
 
     num_classes = len(train_class_names)
@@ -120,6 +173,6 @@ def train(directory, model_path, epochs):
         callbacks=[callback]
     )
 
-    save_model(model, model_path, train_class_names, val_ds)
+    save_model(model, model_path, train_class_names, validation_paths_lst)
 
     plot_training_metrics(history, model_path)

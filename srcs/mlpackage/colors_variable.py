@@ -1,5 +1,8 @@
 # Colors defined as constants, to be used in the package
 
+# Example:
+# print(RED + "This is red text" + RESET)
+
 RED = "\033[91m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
