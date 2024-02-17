@@ -1,105 +1,10 @@
-import argparse
+from mlpackage.parsers.Transformation import parse_argument
 from plantcv import plantcv as pcv
 import os
 import matplotlib.pyplot as plt
 import cv2
 import rembg
-import numpy as np
 from tqdm import tqdm
-
-
-def parse_argument() -> str:
-
-    """
-    Parse the argument of the program,
-    return the path of the image to transform
-    """
-
-    parser = argparse.ArgumentParser(
-        prog='Transformation.py',
-        description="""
-        If the path is a file, display the transformation of the image.
-        If the path is a directory, display the transformation of all the
-        images in the directory and save them in the 'dest' directory.
-        """
-    )
-
-    parser.add_argument(
-        dest='path',
-        type=str,
-        help='Path of the image / directory of image to transform',
-    )
-
-    parser.add_argument(
-        '-dst',
-        type=str,
-        default='../transformed_directory',
-        help='Destination of the transformed image',
-    )
-
-    # Blur
-    parser.add_argument(
-        '-blur', '-b',
-        default=False,
-        action='store_true',
-        help='Do not display/save the blur the image',
-    )
-
-    # Mask
-    parser.add_argument(
-        '-mask', '-m',
-        default=False,
-        action='store_true',
-        help='Do not display/save the mask of the transformed image',
-    )
-
-    # ROI
-    parser.add_argument(
-        '-roi', '-r',
-        default=False,
-        action='store_true',
-        help='Do not display/save the ROI of the transformed image',
-    )
-
-    # Object
-    parser.add_argument(
-        '-obj', '-o',
-        default=False,
-        action='store_true',
-        help='Do not display/save the object of the transformed image',
-    )
-
-    # Pseudolandmark
-    parser.add_argument(
-        '-pseudo', '-p',
-        default=False,
-        action='store_true',
-        help='Do not display/save the pseudolandmark of the transformed image',
-    )
-
-    args = parser.parse_args()
-
-    options = np.array([
-        args.blur,
-        args.mask,
-        args.roi,
-        args.obj,
-        args.pseudo
-    ])
-
-    image_to_plot = np.array([
-        "Gaussian blur",
-        "Mask",
-        "ROI Objects",
-        "Analyze object",
-        "Pseudolandmarks"
-    ])
-
-    return (
-        args.path,
-        args.dst,
-        image_to_plot[options] if options.any() else image_to_plot
-    )
 
 
 def is_roi_border(x, y, roi_start_x, roi_start_y, roi_h, roi_w, roi_line_w):
@@ -261,7 +166,8 @@ def draw_pseudolandmarks(image, pseudolandmarks, color, radius):
 
     """
     Draw a circle in the image,
-    Replace the pixels of 'image' by the color by a circle centered on
+    Replace the pixels of 'image' by the color by a circle centered on the
+    pseudolandmarks
     """
 
     for i in range(len(pseudolandmarks)):
@@ -303,10 +209,10 @@ def get_image_name(new_path, label):
 
     point_index = new_path.rfind(".")
     label = label.replace(" ", "_")
-    if point_index == -1:
-        return new_path + "_" + label
-    else:
+    if point_index != -1:
         return new_path[:point_index] + "_" + label + new_path[point_index:]
+    else:
+        return new_path + "_" + label
 
 
 def transform_image(
@@ -334,10 +240,10 @@ def transform_image(
     filled = pcv.fill(bin_img=l_thresh, size=200)
 
     # Apply a gaussian blur to the image to remove the noise
-    gaussian_bluri = pcv.gaussian_blur(img=filled, ksize=(3, 3))
+    gaussian_blur = pcv.gaussian_blur(img=filled, ksize=(3, 3))
 
     # Apply a mask to the image
-    masked = pcv.apply_mask(img=image, mask=gaussian_bluri, mask_color='black')
+    masked = pcv.apply_mask(img=image, mask=gaussian_blur, mask_color='black')
 
     # Create a displayable image with the ROI rectangle and the mask
     roi_image, kept_mask = create_roi_image(
@@ -354,7 +260,7 @@ def transform_image(
 
     images = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
-        "Gaussian blur": cv2.cvtColor(gaussian_bluri, cv2.COLOR_BGR2RGB),
+        "Gaussian blur": cv2.cvtColor(gaussian_blur, cv2.COLOR_BGR2RGB),
         "Mask": cv2.cvtColor(masked, cv2.COLOR_BGR2RGB),
         "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),

@@ -1,12 +1,14 @@
 PYTHON=python3
+IMAGE_DIR=microdb
+IMAGE_TEST=image\ \(1\).JPG
 
 all: analysis augmentation transformation classification
 
 analysis:
-	@($(PYTHON) srcs/Distribution.py microdb)
+	@($(PYTHON) srcs/Distribution.py $(IMAGE_DIR))
 
 augmentation:
-	@(cd ./augmentation ; $(PYTHON) Augmentation.py ../images/Apple_healthy/image\ \(1\).JPG)
+	@($(PYTHON) srcs/Augmentation.py $(IMAGE_TEST))
 
 transformation:
 	@(cd ./transformation ; $(PYTHON) Transformation.py)

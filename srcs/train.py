@@ -79,8 +79,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    exit()
     try:
         main()
     except Exception as error:

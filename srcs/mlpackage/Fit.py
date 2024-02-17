@@ -57,7 +57,13 @@ def save_model(model, model_path, train_class_names, validation_paths_lst):
     print("Model saved at : ", model_path)
 
 
-def set_validation_paths(val_ds, is_augmented, is_transformed, transformation_dir: str, original_dir):
+def set_validation_paths(
+    val_ds,
+    is_augmented,
+    is_transformed,
+    transformation_dir: str,
+    original_dir
+):
 
     """
     Transform the validation paths to the original paths

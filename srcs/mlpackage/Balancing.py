@@ -1,46 +1,27 @@
+from parsers.Balancing import parse_argument
 import os
-import argparse
 import cv2 as cv
 from plantcv import plantcv as pcv
-from Augmentation import (
-    img_contrast,
-    img_brightness,
-    img_flip,
-    img_rotate,
-    img_blur
-)
 import random
+from image_augmentation.ImageAugmentation import ImageAugmentation
 
 
-def parse_argument() -> str:
-
-    """
-    Parse the argument of the program,
-    return the path of the directory to analyze
-    """
-
-    parser = argparse.ArgumentParser(
-                    prog='Distribution',
-                    description="Distribution of files in a directory",
-                    epilog='----')
-    parser.add_argument('folder')
-    args = parser.parse_args()
-    return args.folder
-
-
-def get_max_files(path: str) -> int:
+def subdirs_max_files(path: str) -> int:
 
     """
     Return the maximum number of files in the subdirectories of a directory
     """
 
     max = -1
-    for root, dir, files in os.walk(path):
 
+    for root, dir, files in os.walk(path):
         number_of_files = len(files)
 
         if number_of_files > max:
             max = number_of_files
+
+    if max <= 0:
+        raise Exception(f"The directory {path} is empty")
 
     return max
 
@@ -132,23 +113,20 @@ def warning_dir_exists(new_directory):
             continue
 
 
-def augmentation_on_directory(old_directory, new_directory):
-
-    if not os.path.isdir(old_directory):
-        raise Exception("Invalid directory")
+def augmentation_on_directory(old_directory):
 
     augmentedFunctions = {
-        "Contrast": img_contrast,
-        "Brightness": img_brightness,
-        "Flip": img_flip,
-        "Rotate": img_rotate,
-        "Blur": img_blur
+        "Contrast": ImageAugmentation.contrast,
+        "Brightness": ImageAugmentation.brightness,
+        "Flip": ImageAugmentation.flip,
+        "Rotate": ImageAugmentation.rotate,
+        "Blur": ImageAugmentation.blur,
     }
 
     augmentations_labels = list(augmentedFunctions.keys())
     augmentation_functions = list(augmentedFunctions.values())
 
-    to_balance = get_max_files(old_directory)
+    to_balance = subdirs_max_files(old_directory)
 
     new_directory = old_directory + "_augmented"
 
@@ -169,7 +147,7 @@ def augmentation_on_directory(old_directory, new_directory):
 
         for file in files:
 
-            img, path, filename = pcv.readimage(root + "/" + file)
+            img = ImageAugmentation.read_image(root + "/" + file)
             image_name = get_new_image_name(
                 root, file, "", old_directory, new_directory
             )
@@ -198,7 +176,7 @@ def augmentation_on_directory(old_directory, new_directory):
 
 def main():
     old_directory = parse_argument()
-    augmentation_on_directory(old_directory, "augmented_directory")
+    augmentation_on_directory(old_directory)
 
 
 if __name__ == "__main__":
