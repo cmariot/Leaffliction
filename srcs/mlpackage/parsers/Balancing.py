@@ -17,7 +17,13 @@ def parse_argument() -> str:
     parser.add_argument('folder')
     args = parser.parse_args()
 
-    if not os.path.isdir(args.folder):
+    directory_path = args.folder
+
+    # Remove the last / in dir if it exists
+    if len(directory_path) > 0 and directory_path[-1] == "/":
+        directory_path = directory_path[:-1]
+
+    if not os.path.isdir(directory_path):
         raise Exception("Invalid directory")
 
-    return args.folder
+    return directory_path

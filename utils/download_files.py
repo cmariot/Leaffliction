@@ -12,7 +12,7 @@ if __name__ == '__main__':
     fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': S3_ENDPOINT_URL})
 
     BUCKET = "cmariot"
-    DIR = "model"
+    DIR = "images_transformed/Grape_Black_rot"
 
     if not fs.exists(BUCKET):
         print(f"The bucket {BUCKET} does not exist.")
@@ -36,5 +36,5 @@ if __name__ == '__main__':
                 os.makedirs(f"{local_root}/{dir}")
 
         for file in files:
-            print(f"{root}/{file}")
-            fs.get(f"{root}/{file}", f"{root}/{file}")
+            fs.get(f"{root}/{file}", f"{local_root}/{file}")
+            print(f"{local_root}/{file} downloaded.")

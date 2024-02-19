@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 
 
-def parse_argument() -> str:
+def parse_argument() -> tuple:
 
     """
     Parse the argument of the program,
