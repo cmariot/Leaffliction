@@ -81,11 +81,6 @@ sortedcontainers==2.4.0
 statsmodels==0.14.1
 sympy==1.12
 tblib==3.0.0
-tensorboard==2.15.2
-tensorboard-data-server==0.7.2
-tensorflow==2.15.0.post1
-tensorflow-estimator==2.15.0
-tensorflow-io-gcs-filesystem==0.36.0
 termcolor==2.4.0
 threadpoolctl==3.2.0
 tifffile==2024.1.30
