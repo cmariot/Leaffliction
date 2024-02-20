@@ -29,27 +29,36 @@ def main():
         dir,
         augmentation,
         transformation,
-        model_path
+        model_path,
+        epochs
     ) = parse_arguments()
 
     train_dir = dir
     aug_dir = dir + "_augmented/"
     trans_dir = dir + "_transformed/"
 
+    print("Aumentation phase creating", aug_dir)
+
     if augmentation:
-        augmentation_on_directory(dir, aug_dir)
+        augmentation_on_directory(dir)
         train_dir = aug_dir
     else:
         aug_dir = dir
 
+    print("Transformation phase creating", trans_dir)
+
     if transformation:
-        transform_directory(aug_dir, trans_dir, np.array(["Pseudolandmarks"]))
+        #transform_directory(aug_dir, trans_dir, np.array(["Pseudolandmarks"]))
+        transform_directory(aug_dir, trans_dir, np.array(["Doublewithoutbg"]))
+        #transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
         train_dir = trans_dir
+
+    print("Training phase")
 
     train(
         directory=train_dir,
         model_path=model_path,
-        epochs=1000,
+        epochs=epochs,
         is_augmented=augmentation,
         is_transformed=transformation,
         original_dir=dir

@@ -171,7 +171,7 @@ def augmentation_on_directory(old_directory):
 
             image_name = new_filename.get_name()
             cv.imwrite(image_name, augmented_image)
-            print(image_name)
+            #print(image_name)
 
 
 def main():

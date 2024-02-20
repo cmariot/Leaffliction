@@ -21,6 +21,8 @@ def transform_directory(path, dest, options):
             if not os.path.isdir(os.path.join(new_root, dir)):
                 os.makedirs(os.path.join(new_root, dir))
 
+        print(f"Transformation of (root) {root}")
+
         for file in tqdm(files):
             full_path = os.path.join(root, file)
             new_path = os.path.join(new_root, file)
