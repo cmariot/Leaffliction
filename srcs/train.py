@@ -4,6 +4,7 @@ from mlpackage.Fit import train
 import numpy as np
 from mlpackage.parsers.train import parse_arguments
 from mlpackage.colors_variable import GREEN, RESET
+from mlpackage.utils.zip_dir import zip_dir
 
 
 def intro():
@@ -54,6 +55,12 @@ def main():
         is_transformed=transformation,
         original_dir=dir
     )
+
+    # Zip the directory containing :
+    # - model
+    # - images_augmented
+    # - images_transformed
+    zip_dir(model_path, trans_dir, "model.zip")
 
 
 if __name__ == "__main__":
