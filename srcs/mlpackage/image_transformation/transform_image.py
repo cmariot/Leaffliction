@@ -64,13 +64,23 @@ def transform_image(
         image, kept_mask
     )
 
+    pseudowithoutbg = rembg.remove(pseudolandmarks)
+    pseudowithoutbg = cv2.cvtColor(pseudowithoutbg, cv2.COLOR_BGR2RGB)
+
+    double = cv2.hconcat([masked, pseudolandmarks])
+
+    doublewithoutbg = cv2.hconcat([cv2.cvtColor(masked, cv2.COLOR_BGR2RGB), pseudowithoutbg])
+
     images = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
         "Gaussian blur": cv2.cvtColor(gaussian_blur, cv2.COLOR_BGR2RGB),
         "Mask": cv2.cvtColor(masked, cv2.COLOR_BGR2RGB),
         "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
-        "Pseudolandmarks": cv2.cvtColor(pseudolandmarks, cv2.COLOR_BGR2RGB)
+        "Pseudolandmarks": cv2.cvtColor(pseudolandmarks, cv2.COLOR_BGR2RGB),
+        "Pseudowithoutbg": pseudowithoutbg,
+        "Double": cv2.cvtColor(double, cv2.COLOR_BGR2RGB),
+        "Doublewithoutbg": doublewithoutbg
     }
 
     # Used in predict.py to return the transformed images
@@ -82,7 +92,7 @@ def transform_image(
     if not is_launch_on_dir:
 
         # Create the figure to plot
-        fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
+        fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(16, 9))
 
         # Title of the plot
         fig.suptitle(f"Transformation of {image_path}")

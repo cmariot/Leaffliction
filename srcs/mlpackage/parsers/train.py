@@ -14,6 +14,13 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--epochs", "-e",
+        type=int,
+        default=10,
+        help="Number of epochs for the training"
+    )
+
+    parser.add_argument(
         "--augmentation", "-a",
         action="store_true",
         help="Don't apply augmentation to the dataset"
@@ -46,5 +53,6 @@ def parse_arguments():
         args.dir,
         not args.augmentation,
         not args.transformation,
-        args.model_path
+        args.model_path,
+        args.epochs
     )

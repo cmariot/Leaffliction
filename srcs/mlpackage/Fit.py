@@ -127,7 +127,7 @@ def train(
 
     callback = callbacks.EarlyStopping(
         monitor='val_loss',
-        patience=3
+        patience=10
     )
 
     model = Sequential([
