@@ -1,57 +1,35 @@
-import argparse
 from mlpackage.Balancing import augmentation_on_directory
 from Transformation import transform_directory
 from mlpackage.Fit import train
 import numpy as np
-import os
+from mlpackage.parsers.train import parse_arguments
+from mlpackage.colors_variable import GREEN, RESET
 
 
-def parse_arguments():
-
-    parser = argparse.ArgumentParser(
-        description="Train a classification model"
-    )
-
-    parser.add_argument(
-        "dir",
-        type=str,
-    )
-
-    parser.add_argument(
-        "--augmentation", "-a",
-        action="store_true",
-        help="Don't apply augmentation to the dataset"
-    )
-
-    parser.add_argument(
-        "--transformation", "-t",
-        action="store_true",
-        help="Don't apply transformation to the dataset"
-    )
-
-    args = parser.parse_args()
-
-    # Check if the directory exists
-    if not os.path.isdir(args.dir):
-        raise Exception("The directory given as argument does not exist")
-
-    # Revome the last / in dir if it exists
-    if len(args.dir) > 0 and args.dir[-1] == "/":
-        args.dir = args.dir[:-1]
-
-    return (
-        args.dir,
-        not args.augmentation,
-        not args.transformation
+def intro():
+    print(
+        f"""{GREEN}
+ _____          _
+|_   _| __ __ _(_)_ __
+  | || '__/ _` | | '_ \\
+  | || | | (_| | | | | |
+  |_||_|  \\__,_|_|_| |_|
+{RESET}\n""" +
+        "This program will train a model on the given directory\n" +
+        "It will apply augmentation and transformation to the dataset\n" +
+        "The model will be saved in the model directory\n"
     )
 
 
 def main():
 
+    intro()
+
     (
         dir,
         augmentation,
-        transformation
+        transformation,
+        model_path
     ) = parse_arguments()
 
     train_dir = dir
@@ -70,7 +48,7 @@ def main():
 
     train(
         directory=train_dir,
-        model_path="model",
+        model_path=model_path,
         epochs=1000,
         is_augmented=augmentation,
         is_transformed=transformation,

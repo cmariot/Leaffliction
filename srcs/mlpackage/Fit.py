@@ -49,8 +49,6 @@ def save_model(model, model_path, train_class_names, validation_paths_lst):
     with open(model_path + "/class_names.pkl", "wb") as f:
         pickle.dump(train_class_names, f)
 
-    # set_validation_paths(val_ds, model_path)
-
     with open(model_path + "/validation_paths.pkl", "wb") as f:
         pickle.dump(validation_paths_lst, f)
 
@@ -123,17 +121,6 @@ def train(
         batch_size=50
     )
 
-    # Will be moved in the save_model function
-    validation_paths_lst = set_validation_paths(
-        val_ds,
-        is_augmented,
-        is_transformed,
-        directory,
-        original_dir
-    )
-
-    for path in val_ds.file_paths:
-        print(path)
     train_class_names = train_ds.class_names
 
     num_classes = len(train_class_names)
@@ -179,6 +166,13 @@ def train(
         callbacks=[callback]
     )
 
+    validation_paths_lst = set_validation_paths(
+        val_ds,
+        is_augmented,
+        is_transformed,
+        directory,
+        original_dir
+    )
     save_model(model, model_path, train_class_names, validation_paths_lst)
 
     plot_training_metrics(history, model_path)

@@ -137,7 +137,6 @@ if __name__ == "__main__":
         for image_path in validation_paths:
 
             if not os.path.isfile(image_path):
-
                 print(f"The file {image_path} does not exist.")
                 continue
 

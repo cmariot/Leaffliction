@@ -1,9 +1,9 @@
-from parsers.Balancing import parse_argument
+from mlpackage.parsers.Balancing import parse_argument
 import os
 import cv2 as cv
 from plantcv import plantcv as pcv
 import random
-from image_augmentation.ImageAugmentation import ImageAugmentation
+from mlpackage.image_augmentation.ImageAugmentation import ImageAugmentation
 
 
 def subdirs_max_files(path: str) -> int:
