@@ -25,7 +25,10 @@ def transform_directory(path, dest, options):
             if not os.path.isdir(os.path.join(new_root, dir)):
                 os.makedirs(os.path.join(new_root, dir))
 
-        print(f"Transformation of (root) {root}")
+        if len(files) == 0:
+            continue
+
+        print(f"Transforming images in {root} to {new_root}")
 
         for file in tqdm(files):
             full_path = os.path.join(root, file)
@@ -36,5 +39,7 @@ def transform_directory(path, dest, options):
                 is_launch_on_dir=True,
                 new_path=new_path
             )
+
+        print()
 
     return dest

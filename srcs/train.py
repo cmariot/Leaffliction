@@ -27,44 +27,17 @@ def main():
     intro()
 
     (
-        dir,
-        train_dir,
-        aug_dir,
-        trans_dir,
-        augmentation,
-        transformation,
+        dir, train_dir, aug_dir, trans_dir,
+        augmentation, transformation,
         model_path,
         epochs
     ) = parse_arguments()
 
-    # print(f"Augmentation {augmentation}")
-    # print(f"Transformation {transformation}")
-
-    # if augmentation:
-    #     print(f"Train directory: {train_dir}, will be used for augmentation")
-    #     print(f"Augmented directory: {aug_dir}")
-    #     train_dir = aug_dir
-
-    # if transformation:
-    #     print(f"{aug_dir} will be used for the transformation, and the result",
-    #           f"will be saved in {trans_dir}"
-    #           )
-    #     train_dir = trans_dir
-
-    # print(
-    #     f"The training will be done on the {train_dir},",
-    #     f"with original dir as {dir}"
-    # )
-    # exit()
-
     if augmentation:
         train_dir = augmentation_on_directory(train_dir)
 
-    # tester -a avec dossier de test != nb d'images dans les dossiers ?
     if transformation:
-        # train_dir = transform_directory(aug_dir, trans_dir, np.array(["Pseudolandmarks"]))
-        train_dir = transform_directory(aug_dir, trans_dir, np.array(["Doublewithoutbg"]))
-        # train_dir = transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
+        train_dir = transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
 
     train(
         directory=train_dir,
@@ -80,12 +53,12 @@ def main():
             model_path,
             trans_dir
         ],
-        output_filename="model.zip"
+        aug_dir=aug_dir,
+        output_filename=model_path + ".zip"
     )
 
 
 if __name__ == "__main__":
-    main()
     try:
         main()
     except Exception as error:

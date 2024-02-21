@@ -4,6 +4,8 @@ import cv2 as cv
 from plantcv import plantcv as pcv
 import random
 from mlpackage.image_augmentation.ImageAugmentation import ImageAugmentation
+from mlpackage.distribution.print_directory_structure import \
+    print_directory_structure
 
 
 def subdirs_max_files(path: str) -> int:
@@ -112,6 +114,8 @@ def warning_dir_exists(new_directory):
             )
             continue
 
+    print()
+
 
 def augmentation_on_directory(old_directory):
 
@@ -179,6 +183,9 @@ def augmentation_on_directory(old_directory):
 
             image_name = new_filename.get_name()
             cv.imwrite(image_name, augmented_image)
+
+    print_directory_structure(new_directory)
+    print()
 
     return old_directory + "_augmented/"
 

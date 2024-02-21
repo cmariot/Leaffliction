@@ -64,12 +64,12 @@ def transform_image(
         image, kept_mask
     )
 
-    pseudowithoutbg = rembg.remove(pseudolandmarks)
-    pseudowithoutbg = cv2.cvtColor(pseudowithoutbg, cv2.COLOR_BGR2RGB)
+    pseudowithoutbg = create_pseudolandmarks_image(
+        masked, kept_mask
+    )
 
     double = cv2.hconcat([masked, pseudolandmarks])
-
-    doublewithoutbg = cv2.hconcat([cv2.cvtColor(masked, cv2.COLOR_BGR2RGB), pseudowithoutbg])
+    doublewithoutbg = cv2.hconcat([masked, pseudowithoutbg])
 
     images = {
         "Original": cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
@@ -78,9 +78,9 @@ def transform_image(
         "ROI Objects": cv2.cvtColor(roi_image, cv2.COLOR_BGR2RGB),
         "Analyze object": cv2.cvtColor(analysis_image, cv2.COLOR_BGR2RGB),
         "Pseudolandmarks": cv2.cvtColor(pseudolandmarks, cv2.COLOR_BGR2RGB),
-        "Pseudowithoutbg": pseudowithoutbg,
+        "Pseudowithoutbg": cv2.cvtColor(pseudowithoutbg, cv2.COLOR_BGR2RGB),
         "Double": cv2.cvtColor(double, cv2.COLOR_BGR2RGB),
-        "Doublewithoutbg": doublewithoutbg
+        "Doublewithoutbg": cv2.cvtColor(doublewithoutbg, cv2.COLOR_BGR2RGB)
     }
 
     # Used in predict.py to return the transformed images

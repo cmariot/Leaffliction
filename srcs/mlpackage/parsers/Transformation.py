@@ -27,7 +27,7 @@ def parse_argument() -> tuple:
     parser.add_argument(
         '-dst',
         type=str,
-        default='../transformed_directory',
+        default=None,
         help='Destination of the transformed image',
     )
 
@@ -89,8 +89,11 @@ def parse_argument() -> tuple:
         "Pseudolandmarks"
     ])
 
+    dest = args.dst if args.dst is not None \
+        else args.path + '_transformed'
+
     return (
         args.path,
-        args.dst,
+        dest,
         image_to_plot[options] if options.any() else image_to_plot
     )
