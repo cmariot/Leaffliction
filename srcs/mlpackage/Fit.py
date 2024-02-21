@@ -23,7 +23,11 @@ def plot_training_metrics(history, model_path):
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 9))
 
-    fig.suptitle("Metrics evolution during the training", fontsize=13, fontweight="bold")
+    fig.suptitle(
+        "Metrics evolution during the training",
+        fontsize=13,
+        fontweight="bold"
+    )
 
     # Axes[0] is the loss
     axes[0].plot(range(epochs), loss, label="Train loss")
@@ -155,13 +159,15 @@ def train(
 
     model = Sequential([
         layers.Rescaling(1./255),
-        layers.Conv2D(32, 30, activation='relu'),
+        layers.Conv2D(128, 4, activation='relu'),
         layers.MaxPooling2D(),
-        layers.Conv2D(32, 3, activation='relu'),
+        layers.Conv2D(64, 4, activation='relu'),
         layers.MaxPooling2D(),
-        layers.Conv2D(32, 3, activation='relu'),
+        layers.Conv2D(32, 4, activation='relu'),
         layers.MaxPooling2D(),
-        layers.Dropout(0.2),
+        layers.Conv2D(16, 4, activation='relu'),
+        layers.MaxPooling2D(),
+        layers.Dropout(0.1),
         layers.Flatten(),
         layers.Dense(128, activation='relu'),
         layers.Dense(
