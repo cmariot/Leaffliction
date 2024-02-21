@@ -49,10 +49,23 @@ def parse_arguments():
     if len(args.dir) > 0 and args.dir[-1] == "/":
         args.dir = args.dir[:-1]
 
+    augmentation = not args.augmentation
+    transformation = not args.transformation
+
+    train_dir = args.dir
+    aug_dir = args.dir + "_augmented/"
+    trans_dir = args.dir + "_transformed/"
+
+    if not augmentation:
+        aug_dir = train_dir
+
     return (
         args.dir,
-        not args.augmentation,
-        not args.transformation,
+        train_dir,
+        aug_dir,
+        trans_dir,
+        augmentation,
+        transformation,
         args.model_path,
         args.epochs
     )

@@ -130,6 +130,14 @@ def augmentation_on_directory(old_directory):
 
     new_directory = old_directory + "_augmented"
 
+    GREEN = "\033[92m"
+    RESET = "\033[0m"
+    print(
+        f"{GREEN}" +
+        f"Augmentation phase, creating {new_directory} from {old_directory}:\n" +
+        f"{RESET}"
+    )
+
     if os.path.isdir(new_directory):
         warning_dir_exists(new_directory)
 
@@ -171,7 +179,8 @@ def augmentation_on_directory(old_directory):
 
             image_name = new_filename.get_name()
             cv.imwrite(image_name, augmented_image)
-            #print(image_name)
+
+    return old_directory + "_augmented/"
 
 
 def main():

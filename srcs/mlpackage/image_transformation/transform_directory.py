@@ -13,6 +13,10 @@ def transform_directory(path, dest, options):
     if not os.path.isdir(dest):
         os.makedirs(dest)
 
+    GREEN = "\033[92m"
+    RESET = "\033[0m"
+    print(f"{GREEN}Transformation phase, creating {dest} from {path}:\n{RESET}")
+
     for root, dirs, files in os.walk(path):
 
         new_root = root.replace(path, dest, 1)
@@ -32,3 +36,5 @@ def transform_directory(path, dest, options):
                 is_launch_on_dir=True,
                 new_path=new_path
             )
+
+    return dest

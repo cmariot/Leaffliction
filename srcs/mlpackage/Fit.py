@@ -22,13 +22,14 @@ def plot_training_metrics(history, model_path):
     epochs = len(loss)
 
     plt.subplot(1, 2, 1)
-    plt.title("Accuracy")
+    plt.title("Evolution of the accuracy during the training")
     plt.plot(range(epochs), acc, label="train ac")
     plt.plot(range(epochs), val_acc, label="val ac")
     plt.legend()
+    plt.ylim(bottom=0, top=1)
 
     plt.subplot(1, 2, 2)
-    plt.title("loss")
+    plt.title("Evolution of the loss during the training")
     plt.plot(range(epochs), loss, label="tain loss")
     plt.plot(range(epochs), val_loss, label="val loss")
     plt.legend()
@@ -102,6 +103,10 @@ def train(
     is_transformed,
     original_dir
 ):
+
+    GREEN = "\033[92m"
+    RESET = "\033[0m"
+    print(f"{GREEN}Training phase :{RESET}\n")
 
     train_ds = ts.keras.utils.image_dataset_from_directory(
         directory,
