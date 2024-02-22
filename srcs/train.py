@@ -30,14 +30,17 @@ def main():
         dir, train_dir, aug_dir, trans_dir,
         augmentation, transformation,
         model_path,
-        epochs
+        epochs,
+        need_zip
     ) = parse_arguments()
 
     if augmentation:
         train_dir = augmentation_on_directory(train_dir)
 
     if transformation:
-        train_dir = transform_directory(aug_dir, trans_dir, np.array(["Mask"]))
+        train_dir = transform_directory(
+            aug_dir, trans_dir, np.array(["Pseudolandmarks"])
+        )
 
     train(
         directory=train_dir,
@@ -48,14 +51,15 @@ def main():
         original_dir=dir
     )
 
-    zip_dir_list(
-        dirs_list=[
-            model_path,
-            trans_dir
-        ],
-        aug_dir=aug_dir,
-        output_filename=model_path + ".zip"
-    )
+    if need_zip:
+        zip_dir_list(
+            dirs_list=[
+                model_path,
+                trans_dir
+            ],
+            aug_dir=aug_dir,
+            output_filename=model_path + ".zip"
+        )
 
 
 if __name__ == "__main__":

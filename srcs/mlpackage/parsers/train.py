@@ -39,6 +39,12 @@ def parse_arguments():
         help="The path where the model will be saved"
     )
 
+    parser.add_argument(
+        "--need_zip", "-z",
+        action="store_true",
+        help="Don't create a zip file with the model and the transformed dataset"
+    )
+
     args = parser.parse_args()
 
     # Check if the directory exists
@@ -67,5 +73,6 @@ def parse_arguments():
         augmentation,
         transformation,
         args.model_path,
-        args.epochs
+        args.epochs,
+        not args.need_zip
     )

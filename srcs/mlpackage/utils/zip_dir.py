@@ -40,9 +40,3 @@ def zip_dir_list(dirs_list, aug_dir, output_filename):
                     )
             remove_directory(directory)
         remove_directory(aug_dir)
-
-
-if __name__ == "__main__":
-
-    # Zip them
-    zip_dir_list(["dir1", "dir2"], "output.zip")

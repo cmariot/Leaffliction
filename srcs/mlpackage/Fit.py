@@ -1,7 +1,7 @@
-import tensorflow as ts
 import matplotlib.pyplot as plt
 import pickle
-from keras import Sequential, layers, losses, callbacks
+from keras import Sequential, layers, losses, callbacks, optimizers
+from keras.utils import image_dataset_from_directory
 
 
 def plot_training_metrics(history, model_path):
@@ -130,22 +130,22 @@ def train(
     RESET = "\033[0m"
     print(f"{GREEN}Training phase :{RESET}\n")
 
-    train_ds = ts.keras.utils.image_dataset_from_directory(
+    train_ds = image_dataset_from_directory(
         directory,
         validation_split=0.2,
         subset="training",
         seed=123,
         image_size=(256, 256),
-        batch_size=50
+        batch_size=256
     )
 
-    val_ds = ts.keras.utils.image_dataset_from_directory(
+    val_ds = image_dataset_from_directory(
         directory,
         validation_split=0.2,
         subset="validation",
         seed=123,
         image_size=(256, 256),
-        batch_size=50
+        batch_size=256
     )
 
     train_class_names = train_ds.class_names
@@ -158,18 +158,44 @@ def train(
     )
 
     model = Sequential([
+
         layers.Rescaling(1./255),
-        layers.Conv2D(128, 4, activation='relu'),
+        layers.Conv2D(
+            filters=128,
+            kernel_size=4,
+            activation='relu'
+        ),
         layers.MaxPooling2D(),
-        layers.Conv2D(64, 4, activation='relu'),
+
+        layers.Conv2D(
+            filters=64,
+            kernel_size=4,
+            activation='relu'
+        ),
         layers.MaxPooling2D(),
-        layers.Conv2D(32, 4, activation='relu'),
+
+        layers.Conv2D(
+            filters=32,
+            kernel_size=4,
+            activation='relu'
+        ),
         layers.MaxPooling2D(),
-        layers.Conv2D(16, 4, activation='relu'),
+
+        layers.Conv2D(
+            filters=16,
+            kernel_size=4,
+            activation='relu'
+        ),
         layers.MaxPooling2D(),
-        layers.Dropout(0.1),
+
+        # layers.Dropout(0.1),
+
         layers.Flatten(),
-        layers.Dense(128, activation='relu'),
+
+        layers.Dense(
+            units=128,
+            activation='relu'
+        ),
         layers.Dense(
             units=num_classes,
             activation='softmax'
@@ -182,8 +208,10 @@ def train(
 
     print(model.summary())
 
+    adam = optimizers.legacy.Adam()
+
     model.compile(
-        optimizer='adam',
+        optimizer=adam,
         loss=losses.SparseCategoricalCrossentropy(from_logits=False),
         metrics=['accuracy']
     )
@@ -192,7 +220,8 @@ def train(
         train_ds,
         validation_data=val_ds,
         epochs=epochs,
-        callbacks=[callback]
+        callbacks=[callback],
+        use_multiprocessing=True
     )
 
     validation_paths_lst = set_validation_paths(
