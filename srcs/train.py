@@ -39,7 +39,7 @@ def main():
 
     if transformation:
         train_dir = transform_directory(
-            aug_dir, trans_dir, np.array(["Pseudolandmarks"])
+            aug_dir, trans_dir, np.array(["Doublewithoutbg"])
         )
 
     train(
