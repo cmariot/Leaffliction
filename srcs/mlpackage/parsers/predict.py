@@ -3,7 +3,7 @@
 
 def parse_arguments():
 
-    image_path = "image.jpg"
+    image_path = "./microdb/Apple/image (11).JPG"
 
     model_path = "model"
 
@@ -11,7 +11,7 @@ def parse_arguments():
         "Doublewithoutbg"
     ]
 
-    is_predict_validation_set = True
+    is_predict_validation_set = False
 
     return (
         image_path,

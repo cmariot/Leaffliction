@@ -18,6 +18,8 @@ def predict_image(
     display_prediction=True
 ):
 
+    print(f"Predicting image: {image_path}")
+
     # Transformation de l'image
     images_transformed = transform_image(
         image_path,
@@ -46,6 +48,13 @@ def predict_image(
         print(f"Original class: {y}")
 
         if display_prediction:
-            plot_prediction()
+            plot_prediction(
+                y,
+                y_hat,
+                y_pred,
+                class_names,
+                image,
+                image_path
+            )
 
     return correct / len(images_transformed)

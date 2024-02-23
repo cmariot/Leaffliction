@@ -34,13 +34,14 @@ if __name__ == "__main__":
             is_predict_validation_set
         ) = parse_arguments()
 
+        print(f"{is_predict_validation_set=}")
         (
             model,
             class_names,
             validation_paths
         ) = load_model(model_path, is_predict_validation_set)
 
-        if is_predict_validation_set:
+        if is_predict_validation_set is True:
             predict_validation_set(
                 validation_paths,
                 model,

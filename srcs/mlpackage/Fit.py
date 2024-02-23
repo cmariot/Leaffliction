@@ -135,8 +135,8 @@ def train(
         validation_split=0.2,
         subset="training",
         seed=123,
-        image_size=(256, 256),
-        batch_size=256
+        image_size=(256, 512),
+        batch_size=10
     )
 
     val_ds = image_dataset_from_directory(
@@ -144,7 +144,7 @@ def train(
         validation_split=0.2,
         subset="validation",
         seed=123,
-        image_size=(256, 256),
+        image_size=(256, 512),
         batch_size=256
     )
 
@@ -203,7 +203,7 @@ def train(
     ])
 
     model.build(
-        input_shape=(None, 256, 256, 3)
+        input_shape=(None, 256, 512, 3)
     )
 
     print(model.summary())

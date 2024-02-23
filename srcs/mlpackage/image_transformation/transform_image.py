@@ -86,6 +86,12 @@ def transform_image(
     # Used in predict.py to return the transformed images
     if is_launch_on_dir is None:
         [images.pop(key) for key in images.keys() - options]
+
+        for image in images:
+
+            plt.imshow(images[image])
+            plt.show()
+
         return images
 
     # If the argument of the program is a file, display the transformation
