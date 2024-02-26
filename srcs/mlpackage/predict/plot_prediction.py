@@ -66,5 +66,4 @@ def plot_prediction(
     )
 
     plt.show()
-    # plt.savefig(f"{key}.png")
     plt.close()

@@ -1,6 +1,7 @@
 import numpy as np
 from ..image_transformation.transform_image import transform_image
 from .plot_prediction import plot_prediction
+from ..colors_variable import GREEN, RESET
 
 
 def get_class_name(image_path):
@@ -18,7 +19,7 @@ def predict_image(
     display_prediction=True
 ):
 
-    print(f"Predicting image: {image_path}")
+    print(f"Predicting image: {GREEN}{image_path}{RESET}")
 
     # Transformation de l'image
     images_transformed = transform_image(

@@ -42,4 +42,4 @@ def predict_validation_set(
             else:
                 break
 
-        print(f"Accuracy: {correct_predictions / total_predictions}")
+        print(f"Accuracy: {correct_predictions / total_predictions}\n")

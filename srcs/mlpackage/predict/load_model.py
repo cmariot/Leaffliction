@@ -17,6 +17,7 @@ def load_model(model_path: str, is_predict_validation_set: bool) -> tuple:
         raise ValueError(
             f"The file {model_path}/class_names.pkl does not exist."
         )
+
     model = keras.models.load_model(model_path)
     with open(f"{model_path}/class_names.pkl", "rb") as f:
         class_names = pickle.load(f)
