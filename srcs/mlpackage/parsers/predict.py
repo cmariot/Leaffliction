@@ -16,24 +16,19 @@ def parse_arguments():
     parser.add_argument(
         "--model_path",
         type=str,
-        default="./model",
+        default="model",
         help="Path to the model"
-    )
-
-    parser.add_argument(
-        "--list_transformations",
-        nargs="+",
-        default=["Doublewithoutbg"],
-        help="List of transformations"
     )
 
     args = parser.parse_args()
 
+    image_path = args.image_path
+    model_path = args.model_path
     is_predict_validation_set = True if args.image_path is None else False
 
     return (
-        args.image_path,
-        args.model_path,
-        args.list_transformations,
+        image_path,
+        model_path,
+        ["Doublewithoutbg"],
         is_predict_validation_set
     )

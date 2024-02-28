@@ -39,7 +39,7 @@ if __name__ == "__main__":
             validation_paths
         ) = load_model(model_path, is_predict_validation_set)
 
-        if is_predict_validation_set is True:
+        if is_predict_validation_set:
             predict_validation_set(
                 validation_paths,
                 model,
