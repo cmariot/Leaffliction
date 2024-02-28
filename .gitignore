@@ -6,3 +6,6 @@ en.subject.pdf
 *.JPG
 **/__pycache__/
 **/.DS_Store
+utils/download_files.py
+utils/upload_files.py
+utils/remove_directory_aws.py

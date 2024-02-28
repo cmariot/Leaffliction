@@ -1,11 +1,7 @@
 import matplotlib.pyplot as plt
 import pickle
-from keras import Sequential
+from keras import Sequential, layers, losses, callbacks, optimizers
 from keras.utils import image_dataset_from_directory
-from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, Rescaling
-from keras.losses import SparseCategoricalCrossentropy
-from keras.optimizers.legacy import Adam
-from keras.callbacks import EarlyStopping
 
 
 def plot_training_metrics(history, model_path):
@@ -156,46 +152,53 @@ def train(
 
     num_classes = len(train_class_names)
 
+    callback = callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=10
+    )
+
     model = Sequential([
 
-        Rescaling(1./255),
-        Conv2D(
-            filters=128,
-            kernel_size=4,
-            activation='relu'
-        ),
-        MaxPooling2D(),
-
-        Conv2D(
-            filters=64,
-            kernel_size=4,
-            activation='relu'
-        ),
-        MaxPooling2D(),
-
-        Conv2D(
-            filters=32,
-            kernel_size=4,
-            activation='relu'
-        ),
-        MaxPooling2D(),
-
-        Conv2D(
+        layers.Rescaling(1./255),
+        layers.Conv2D(
             filters=16,
             kernel_size=4,
             activation='relu'
         ),
-        MaxPooling2D(),
+        layers.MaxPooling2D(),
 
-        Dropout(0.1),
+        layers.Conv2D(
+            filters=32,
+            kernel_size=4,
+            activation='relu'
+        ),
+        layers.MaxPooling2D(),
 
-        Flatten(),
+        layers.Dropout(0.1),
 
-        Dense(
+        layers.Conv2D(
+            filters=64,
+            kernel_size=4,
+            activation='relu'
+        ),
+        layers.MaxPooling2D(),
+
+        layers.Conv2D(
+            filters=128,
+            kernel_size=4,
+            activation='relu'
+        ),
+        layers.MaxPooling2D(),
+
+        layers.Dropout(0.1),
+
+        layers.Flatten(),
+
+        layers.Dense(
             units=128,
             activation='relu'
         ),
-        Dense(
+        layers.Dense(
             units=num_classes,
             activation='softmax'
         )
@@ -207,9 +210,11 @@ def train(
 
     print(model.summary())
 
+    adam = optimizers.legacy.Adam()
+
     model.compile(
-        optimizer=Adam(),
-        loss=SparseCategoricalCrossentropy(from_logits=False),
+        optimizer=adam,
+        loss=losses.SparseCategoricalCrossentropy(from_logits=False),
         metrics=['accuracy']
     )
 
@@ -217,12 +222,7 @@ def train(
         train_ds,
         validation_data=val_ds,
         epochs=epochs,
-        callbacks=[
-            EarlyStopping(
-                monitor='val_loss',
-                patience=10
-            )
-        ],
+        callbacks=[callback],
         use_multiprocessing=True
     )
 
