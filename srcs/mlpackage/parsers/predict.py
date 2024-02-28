@@ -1,21 +1,39 @@
-# import argparse
+import argparse
 
 
 def parse_arguments():
 
-    image_path = "./microdb/Apple/image (11).JPG"
+    parser = argparse.ArgumentParser()
 
-    model_path = "model"
+    parser.add_argument(
+        "--image_path",
+        type=str,
+        default=None,
+        help="Path to the image to predict on. " +
+             "If not provided, the model will predict on the validation set."
+    )
 
-    list_transformations = [
-        "Doublewithoutbg"
-    ]
+    parser.add_argument(
+        "--model_path",
+        type=str,
+        default="./model",
+        help="Path to the model"
+    )
 
-    is_predict_validation_set = False
+    parser.add_argument(
+        "--list_transformations",
+        nargs="+",
+        default=["Doublewithoutbg"],
+        help="List of transformations"
+    )
+
+    args = parser.parse_args()
+
+    is_predict_validation_set = True if args.image_path is None else False
 
     return (
-        image_path,
-        model_path,
-        list_transformations,
+        args.image_path,
+        args.model_path,
+        args.list_transformations,
         is_predict_validation_set
     )

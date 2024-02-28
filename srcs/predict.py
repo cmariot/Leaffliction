@@ -14,9 +14,8 @@ def intro():
 |  __/| | |  __/ (_| | | (__| |_| | (_) | | | |
 |_|   |_|  \\___|\\__,_|_|\\___|\\__|_|\\___/|_| |_|
 
-
 {RESET}\n""" +
-        "This program is used to make predictions on an image or ",
+        "This program is used to make predictions on an image or",
         "the predictions of the validation set.\n"
     )
 
@@ -34,7 +33,6 @@ if __name__ == "__main__":
             is_predict_validation_set
         ) = parse_arguments()
 
-        print(f"{is_predict_validation_set=}")
         (
             model,
             class_names,

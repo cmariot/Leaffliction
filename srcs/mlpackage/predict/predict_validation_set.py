@@ -36,10 +36,18 @@ def predict_validation_set(
         except KeyboardInterrupt:
 
             if display_prediction:
+
+                # The first SIGTERM will close the matplotlib window and
+                # stop to display the predictions
+
                 display_prediction = False
                 plt.close()
                 continue
+
             else:
+
+                # The second SIGTERM will stop the program
+
                 break
 
-        print(f"Accuracy: {correct_predictions / total_predictions}")
+        print(f"Accuracy: {correct_predictions / total_predictions}\n")

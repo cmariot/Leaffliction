@@ -18,8 +18,6 @@ def predict_image(
     display_prediction=True
 ):
 
-    print(f"Predicting image: {image_path}")
-
     # Transformation de l'image
     images_transformed = transform_image(
         image_path,
