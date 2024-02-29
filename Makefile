@@ -1,27 +1,24 @@
 PYTHON=python3
-IMAGE_DIR=microdb
-IMAGE_TEST=image\ \(1\).JPG
 
-all: analysis augmentation transformation classification
+IMAGES_DIR="images"
+SMALL_DIR="microdb"
+IMAGE_TEST="image.jpg"
 
 analysis:
-	@($(PYTHON) srcs/Distribution.py $(IMAGE_DIR))
+	@($(PYTHON) srcs/Distribution.py $(IMAGES_DIR))
 
 augmentation:
 	@($(PYTHON) srcs/Augmentation.py $(IMAGE_TEST))
 
 transformation:
-	@(cd ./transformation ; $(PYTHON) Transformation.py)
-
-classification:
-	@(cd ./classification ; $(PYTHON) train.py)
-	@(cd ./classification ; $(PYTHON) predict.py)
+	@($(PYTHON) srcs/Transformation.py $(IMAGE_TEST))
 
 train:
-	@(cd ./classification ; $(PYTHON) train.py)
+	@(rm -rf $(SMALL_DIR)_augmented $(SMALL_DIR)_transformed)
+	@($(PYTHON) srcs/train.py $(SMALL_DIR))
 
 predict:
-	@(cd ./classification ; $(PYTHON) predict.py)
+	@($(PYTHON) srcs/predict.py --image_path $(IMAGE_TEST))
 
 clean:
 	rm -rf */*/__pycache__

@@ -12,15 +12,13 @@ def intro() -> None:
     print(
         f"{GREEN}" +
         Figlet(font="big").renderText("Transformation") +
-        f"{RESET}"
+        f"{RESET}" +
+        "This program can be used on an image or a directory.\n\n" +
+        "If the argument is a file, it will display the transformation of" +
+        " the image.\n" +
+        "Else, if the argument is a directory, it will save the" +
+        " transformation of all the images in the directory.\n"
     )
-
-    print(
-        "This program displays the original image and the transformed images."
-        "\nThe transformed images are saved in the same directory as the",
-        "original image.\n"
-    )
-    exit()
 
 
 def main():
@@ -51,7 +49,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\nSIGTERM")
         exit()
     except Exception as error:
         print(error)

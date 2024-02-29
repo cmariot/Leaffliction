@@ -8,7 +8,7 @@ from pyfiglet import Figlet
 
 def intro():
     print(
-        f"{GREEN}{Figlet(font='big').renderText('Predict')}{RESET}\n""" +
+        f"{GREEN}{Figlet(font='big').renderText('Predict')}{RESET}""" +
         "This program is used to make predictions on an image or",
         "the predictions of the validation set.\n"
     )

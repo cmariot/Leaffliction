@@ -10,7 +10,7 @@ from pyfiglet import Figlet
 
 def intro():
     print(
-        f"{GREEN}{Figlet(font='big').renderText('Distribution')}{RESET}\n""" +
+        f"{GREEN}{Figlet(font='big').renderText('Distribution')}{RESET}""" +
         "This program takes a directory as argument and display a bar chart" +
         "\nand a pie chart representing the distribution of files in the\n" +
         "directory.\n"

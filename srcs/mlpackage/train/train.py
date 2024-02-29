@@ -55,6 +55,7 @@ def train(
         Dropout(0.1),
         Conv2D(filters=64, kernel_size=4, activation='relu'),
         MaxPooling2D(),
+        Dropout(0.1),
         Conv2D(filters=128, kernel_size=4, activation='relu'),
         MaxPooling2D(),
         Flatten(),

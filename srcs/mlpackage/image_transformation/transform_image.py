@@ -92,13 +92,21 @@ def transform_image(
     if not is_launch_on_dir:
 
         # Create the figure to plot
-        fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(16, 9))
+        fig, ax = plt.subplots(ncols=3, nrows=2, figsize=(16, 9))
 
         # Title of the plot
         fig.suptitle(f"Transformation of {image_path}")
 
         # Put the images on the plot
         for (label, img), axe in zip(images.items(), ax.flat):
+
+            if label in [
+                "Pseudowithoutbg",
+                "Doublewithoutbg",
+                "Doublewithoutbg"
+            ]:
+                continue
+
             axe.imshow(img)
             axe.set_title(label)
             axe.set(xticks=[], yticks=[])
