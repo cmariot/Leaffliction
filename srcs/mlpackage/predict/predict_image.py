@@ -34,7 +34,7 @@ def predict_image(
     for key, image in images_transformed.items():
 
         x = np.expand_dims(image, axis=0)
-        y_pred = model.predict(x)
+        y_pred = model.predict(x, verbose=0)
 
         # Get the class names
         y_index = np.argmax(y_pred)
