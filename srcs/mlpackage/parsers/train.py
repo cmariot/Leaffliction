@@ -42,7 +42,7 @@ def parse_arguments():
     parser.add_argument(
         "--need_zip", "-z",
         action="store_true",
-        help="Don't create a zip file with the model and the transformed dataset"
+        help="Don't create a zip file with the model and the dataset"
     )
 
     args = parser.parse_args()

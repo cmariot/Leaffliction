@@ -15,7 +15,9 @@ def transform_directory(path, dest, options):
 
     GREEN = "\033[92m"
     RESET = "\033[0m"
-    print(f"{GREEN}Transformation phase, creating {dest} from {path}:\n{RESET}")
+    print(
+        f"{GREEN}Transformation phase, creating {dest} from {path}:\n{RESET}"
+    )
 
     for root, dirs, files in os.walk(path):
 

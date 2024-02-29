@@ -1,21 +1,16 @@
 from mlpackage.balance.augmentation_on_dir import augmentation_on_directory
 from Transformation import transform_directory
-from mlpackage.Fit import train
+from mlpackage.train.train import train
 import numpy as np
 from mlpackage.parsers.train import parse_arguments
 from mlpackage.colors_variable import GREEN, RESET
 from mlpackage.utils.zip_dir import zip_dir_list
+from pyfiglet import Figlet
 
 
 def intro():
     print(
-        f"""{GREEN}
- _____          _
-|_   _| __ __ _(_)_ __
-  | || '__/ _` | | '_ \\
-  | || | | (_| | | | | |
-  |_||_|  \\__,_|_|_| |_|
-{RESET}\n""" +
+        f"{GREEN}{Figlet(font='big').renderText('Training  : )')}{RESET}\n""" +
         "This program will train a model on the given directory\n" +
         "It will apply augmentation and transformation to the dataset\n" +
         "The model will be saved in the model directory\n"

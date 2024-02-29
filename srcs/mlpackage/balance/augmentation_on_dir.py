@@ -32,8 +32,8 @@ def augmentation_on_directory(old_directory):
     RESET = "\033[0m"
     print(
         f"{GREEN}" +
-        f"Augmentation phase, creating {new_directory} from {old_directory}:\n" +
-        f"{RESET}"
+        f"Augmentation phase, creating {new_directory} " +
+        f"from {old_directory}:{RESET}\n"
     )
 
     if os.path.isdir(new_directory):

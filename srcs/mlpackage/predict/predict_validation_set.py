@@ -1,6 +1,7 @@
 import os
 from .predict_image import predict_image
 import matplotlib.pyplot as plt
+from ..colors_variable import RED, RESET
 
 
 def predict_validation_set(
@@ -10,8 +11,6 @@ def predict_validation_set(
     list_transformations
 ):
 
-    RED = ""
-    RESET = ""
     correct_predictions = 0
     total_predictions = 0
     display_prediction = True
@@ -19,7 +18,9 @@ def predict_validation_set(
     for image_path in validation_paths:
 
         if not os.path.isfile(image_path):
-            print(f"{RED}Warning:{RESET} The file {image_path} does not exist.")
+            print(
+                f"{RED}Warning:{RESET} The file {image_path} does not exist."
+            )
             continue
 
         try:

@@ -4,22 +4,23 @@ from mlpackage.image_transformation.transform_directory \
     import transform_directory
 from mlpackage.colors_variable import GREEN, RESET
 import os
+from pyfiglet import Figlet
 
 
 def intro() -> None:
-    print(
-        f"""{GREEN}
- _____                     __                            _   _
-|_   _| __ __ _ _ __  ___ / _| ___  _ __ _ __ ___   __ _| |_(_) ___  _ __
-  | || '__/ _` | '_ \\/ __| |_ / _ \\| '__| '_ ` _ \\ / _` | __| |/ _ \\| '_ \\
-  | || | | (_| | | | \\__ \\  _| (_) | |  | | | | | | (_| | |_| | (_) | | | |
-  |_||_|  \\__,_|_| |_|___/_|  \\___/|_|  |_| |_| |_|\\__,_|\\__|_|\\___/|_| |_|
 
-{RESET}\n""" +
-        "This program displays the original image and the transformed images.\n"
-        "The transformed images are saved in the same directory as the",
+    print(
+        f"{GREEN}" +
+        Figlet(font="big").renderText("Transformation") +
+        f"{RESET}"
+    )
+
+    print(
+        "This program displays the original image and the transformed images."
+        "\nThe transformed images are saved in the same directory as the",
         "original image.\n"
     )
+    exit()
 
 
 def main():

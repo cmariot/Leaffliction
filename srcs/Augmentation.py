@@ -3,18 +3,12 @@ from mlpackage.image_augmentation.ImageAugmentation import ImageAugmentation
 from mlpackage.image_augmentation.save_images import save_images
 from mlpackage.image_augmentation.plot_images import plot_images
 from mlpackage.colors_variable import GREEN, RED, RESET
+from pyfiglet import Figlet
 
 
 def intro() -> None:
     print(
-        f"""{GREEN}
-    _                                    _        _   _
-   / \\  _   _  __ _ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __
-  / _ \\| | | |/ _` | '_ ` _ \\ / _ \\ '_ \\| __/ _` | __| |/ _ \\| '_ \\
- / ___ \\ |_| | (_| | | | | | |  __/ | | | || (_| | |_| | (_) | | | |
-/_/   \\_\\__,_|\\__, |_| |_| |_|\\___|_| |_|\\__\\__,_|\\__|_|\\___/|_| |_|
-              |___/
-{RESET}\n""" +
+        f"{GREEN}{Figlet(font='big').renderText('Augmentation')}{RESET}\n""" +
         "This program displays the original image and the augmented images.\n"
         "The augmented images are saved in the same directory as the",
         "original image.\n"

@@ -3,18 +3,12 @@ from mlpackage.parsers.predict import parse_arguments
 from mlpackage.predict.load_model import load_model
 from mlpackage.predict.predict_validation_set import predict_validation_set
 from mlpackage.predict.predict_image import predict_image
+from pyfiglet import Figlet
 
 
 def intro():
     print(
-        f"""{GREEN}
- ____               _ _      _   _
-|  _ \\ _ __ ___  __| (_) ___| |_(_) ___  _ __
-| |_) | '__/ _ \\/ _` | |/ __| __| |/ _ \\| '_ \\
-|  __/| | |  __/ (_| | | (__| |_| | (_) | | | |
-|_|   |_|  \\___|\\__,_|_|\\___|\\__|_|\\___/|_| |_|
-
-{RESET}\n""" +
+        f"{GREEN}{Figlet(font='big').renderText('Predict')}{RESET}\n""" +
         "This program is used to make predictions on an image or",
         "the predictions of the validation set.\n"
     )
