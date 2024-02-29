@@ -4,10 +4,11 @@ from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Rescalin
 from keras.optimizers.legacy import Adam
 from keras.losses import SparseCategoricalCrossentropy
 from keras.callbacks import EarlyStopping
-from train.plot_training_metrics import plot_training_metrics
-from train.save_model import save_model
-from train.set_validation_paths import set_validation_paths
-from colors_variable import GREEN, RESET
+
+from .train.plot_training_metrics import plot_training_metrics
+from .train.save_model import save_model
+from .train.set_validation_paths import set_validation_paths
+from .colors_variable import GREEN, RESET
 
 
 def train(
