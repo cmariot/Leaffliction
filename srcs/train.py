@@ -1,4 +1,4 @@
-from mlpackage.Balancing import augmentation_on_directory
+from mlpackage.balance.augmentation_on_dir import augmentation_on_directory
 from Transformation import transform_directory
 from mlpackage.Fit import train
 import numpy as np

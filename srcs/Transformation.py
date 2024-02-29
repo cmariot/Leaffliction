@@ -33,6 +33,9 @@ def main():
 
     intro()
 
+    # path : path of the directory to transform
+    # dest : destination path, where the transformations will be saved
+    # options : which transformations apply
     path, dest, options = parse_argument()
 
     if os.path.isfile(path):
