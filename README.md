@@ -51,3 +51,7 @@ model = Sequential([
     Dense(units=num_classes, activation='softmax')
 ])
 ```
+
+Evolution of the loss and the accuracy for the training and the validation sets during the training phase :
+
+<img src="./model/plot.png" />
