@@ -3,15 +3,15 @@ import os
 
 if __name__ == "__main__":
 
-    valpath_file = "model_reverse_with_valpath94.40/validation_paths.pkl"
-    previous_path = "images"
+    valpath_file = "model/validation_paths.pkl"
+    previous_path = "images_transformed_double"
     new_path = "/media/cmariot/VM/images"
 
     list_valpath = pickle.load(open(valpath_file, "rb"))
 
     new_paths = []
     for path in list_valpath:
-        # path = path.replace(previous_path, new_path, 1)
+        path = path.replace(previous_path, new_path, 1)
         slash_index = path.rfind("/")
         if slash_index != -1:
             filename = path[slash_index + 1:]
